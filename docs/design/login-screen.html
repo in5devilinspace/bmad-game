@@ -1,0 +1,269 @@
+<title>WHISPER HEIST — Sign the Ledger</title>
+<style>
+  :root {
+    --ink: #0b0e14;
+    --ink-2: #11161f;
+    --parchment: #e8dcc2;
+    --parchment-dim: #cdbf9e;
+    --brass: #c9a227;
+    --seal: #8e2c35;
+    --hollow: #4a6b8a;
+    --line: rgba(201, 162, 39, 0.25);
+  }
+  /* Committed single-theme: a vault at night has no light mode. */
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: Palatino, 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    overflow: hidden;
+  }
+  #atmos { position: fixed; inset: 0; display: block; }
+  .vignette {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 42%, transparent 30%, rgba(4, 6, 10, 0.85) 100%);
+  }
+  main {
+    position: relative; z-index: 2;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2.2rem;
+    padding: 1.5rem;
+  }
+  header { text-align: center; }
+  .eyebrow {
+    font-family: ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace;
+    font-size: 0.7rem; letter-spacing: 0.45em; text-transform: uppercase;
+    color: var(--hollow); margin: 0 0 1rem;
+  }
+  h1 {
+    margin: 0; font-weight: 600;
+    font-size: clamp(2.6rem, 8vw, 5rem);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    text-wrap: balance; line-height: 1.05;
+    color: var(--parchment);
+    text-shadow: 0 0 40px rgba(201, 162, 39, 0.25), 3px 3px 0 rgba(142, 44, 53, 0.35);
+  }
+  h1 .whisper { color: var(--brass); }
+  .tagline {
+    margin: 0.9rem 0 0; font-style: italic;
+    color: var(--parchment-dim); font-size: 1.05rem; letter-spacing: 0.04em;
+  }
+  .ledger {
+    width: min(26rem, 92vw);
+    background: linear-gradient(172deg, #171c27 0%, var(--ink-2) 60%, #0d1119 100%);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(232, 220, 194, 0.06);
+    padding: 2rem 2.2rem 1.8rem;
+    position: relative;
+  }
+  .ledger::before {
+    content: ''; position: absolute; inset: 7px;
+    border: 1px dashed rgba(201, 162, 39, 0.18); border-radius: 2px; pointer-events: none;
+  }
+  .ledger h2 {
+    margin: 0 0 0.4rem; font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.4em; text-transform: uppercase; color: var(--brass);
+  }
+  .ledger p.note { margin: 0 0 1.6rem; font-size: 0.85rem; color: var(--parchment-dim); font-style: italic; }
+  label {
+    display: block; font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.62rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--hollow); margin-bottom: 0.45rem;
+  }
+  .field { margin-bottom: 1.25rem; }
+  input {
+    width: 100%; box-sizing: border-box;
+    background: rgba(11, 14, 20, 0.8);
+    border: 1px solid rgba(74, 107, 138, 0.4); border-radius: 2px;
+    color: var(--parchment); font-family: inherit; font-size: 1.05rem;
+    letter-spacing: 0.08em; padding: 0.7rem 0.85rem;
+  }
+  input:focus { outline: 2px solid var(--brass); outline-offset: 1px; border-color: var(--brass); }
+  input::placeholder { color: rgba(205, 191, 158, 0.35); font-style: italic; }
+  .mutation {
+    min-height: 2.4rem; margin: -0.4rem 0 1.1rem;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.78rem; letter-spacing: 0.06em; color: var(--hollow);
+  }
+  .mutation .arrow { color: var(--seal); padding: 0 0.35em; }
+  .mutation .final { color: var(--brass); }
+  .mutation .caption { display: block; margin-top: 0.3rem; font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(74, 107, 138, 0.7); }
+  button {
+    width: 100%; cursor: pointer;
+    background: linear-gradient(180deg, #d4af37 0%, var(--brass) 55%, #9a7b1d 100%);
+    color: #14100a; border: none; border-radius: 2px;
+    font-family: inherit; font-weight: 700; font-size: 0.95rem;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    padding: 0.85rem 1rem;
+    box-shadow: 0 6px 18px rgba(201, 162, 39, 0.25);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  button:hover { transform: translateY(-1px); box-shadow: 0 9px 24px rgba(201, 162, 39, 0.35); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--parchment); outline-offset: 2px; }
+  .sealed {
+    display: none; text-align: center; padding: 0.5rem 0 0.2rem;
+  }
+  .sealed .wax {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 3.4rem; height: 3.4rem; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #b04250, var(--seal) 60%, #5e1d24);
+    color: var(--parchment); font-size: 1.4rem;
+    box-shadow: 0 4px 14px rgba(142, 44, 53, 0.5);
+    margin-bottom: 0.7rem;
+  }
+  .sealed p { margin: 0; font-style: italic; color: var(--parchment-dim); font-size: 0.95rem; }
+  footer {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.65rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: rgba(74, 107, 138, 0.8); text-align: center;
+  }
+  footer .glyphs { letter-spacing: 0.6em; font-size: 0.9rem; color: var(--line); display: block; margin-bottom: 0.5rem; }
+  @media (prefers-reduced-motion: reduce) {
+    #atmos { display: none; }
+    button { transition: none; }
+  }
+</style>
+
+<canvas id="atmos" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<main>
+  <header>
+    <p class="eyebrow">Five nights &middot; One gem &middot; Four whispers</p>
+    <h1><span class="whisper">Whisper</span> Heist</h1>
+    <p class="tagline">The gang that remembers &mdash; and remembers wrong.</p>
+  </header>
+
+  <form class="ledger" id="ledger" autocomplete="off">
+    <h2>Sign the Ledger</h2>
+    <p class="note">You built this vault. Tonight, six thieves come for it. They'll ask around about you first.</p>
+
+    <div class="field">
+      <label for="alias">Your alias, as you'd have it known</label>
+      <input id="alias" name="alias" type="text" maxlength="18" placeholder="the Architect" />
+    </div>
+    <div class="mutation" id="mutation" aria-live="polite"></div>
+
+    <div class="field">
+      <label for="phrase">Passphrase &mdash; a lie only you know</label>
+      <input id="phrase" name="phrase" type="password" placeholder="the east wing is rigged" />
+    </div>
+
+    <button type="submit" id="enter">Enter the Vault</button>
+    <div class="sealed" id="sealed">
+      <span class="wax">&#9670;</span>
+      <p id="sealedText">Ledger signed. Night One begins at dusk.</p>
+    </div>
+  </form>
+
+  <footer>
+    <span class="glyphs">&#9650; &#9679; &#9670; &#9711; &#9647; &#10148;</span>
+    solid is what they saw &middot; hollow is what they heard
+  </footer>
+</main>
+
+<script>
+  // Gossip mutation of the typed alias — the login screen runs the game's own exaggeration table.
+  const alias = document.getElementById('alias');
+  const mutation = document.getElementById('mutation');
+  const EPITHETS = ['the Moth', 'the Ghost', 'Old Iron', 'the Locksmith', 'Half-Truth', 'the Warden', 'Two-Faces', 'the Draft'];
+  function mutate(name) {
+    if (name.length < 2) return null;
+    const chain = [name];
+    let cur = name;
+    // hop 1: drop or double a letter
+    const i = 1 + (cur.length * 7) % (cur.length - 1);
+    cur = (cur.length % 2 === 0) ? cur.slice(0, i) + cur.slice(i + 1) : cur.slice(0, i) + cur[i] + cur.slice(i);
+    chain.push(cur);
+    // hop 2: vowel drift
+    cur = cur.replace(/[aeiou]/i, m => ({ a: 'o', e: 'a', i: 'y', o: 'u', u: 'o', A: 'O', E: 'A', I: 'Y', O: 'U', U: 'O' })[m] || m);
+    chain.push(cur);
+    // hop 3: full epithet slip
+    let h = 0;
+    for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    chain.push(EPITHETS[h % EPITHETS.length]);
+    return chain;
+  }
+  alias.addEventListener('input', () => {
+    const chain = mutate(alias.value.trim());
+    if (!chain) { mutation.innerHTML = ''; return; }
+    mutation.innerHTML =
+      chain.map((s, i) => i === chain.length - 1
+        ? '<span class="final">&ldquo;' + s.replace(/[<>&]/g, '') + '&rdquo;</span>'
+        : '<span>' + s.replace(/[<>&]/g, '') + '</span>'
+      ).join('<span class="arrow">&rarr;</span>') +
+      '<span class="caption">what the gang will call you by night three</span>';
+  });
+
+  const form = document.getElementById('ledger');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = alias.value.trim() || 'the Architect';
+    const chain = mutate(name);
+    document.getElementById('sealedText').textContent =
+      'Ledger signed, ' + name + '. By night three they’ll swear you were “' + (chain ? chain[chain.length - 1] : 'someone else') + '”.';
+    document.getElementById('sealed').style.display = 'block';
+    document.getElementById('enter').textContent = 'Night One begins…';
+    document.getElementById('enter').disabled = true;
+  });
+
+  // Ambient canvas: sweeping flashlight cones + drifting memory glyphs (solid/hollow).
+  const cv = document.getElementById('atmos');
+  const cx = cv.getContext('2d');
+  let W, H;
+  function size() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+  size(); addEventListener('resize', size);
+
+  const GLYPHS = [];
+  for (let i = 0; i < 26; i++) {
+    GLYPHS.push({
+      x: Math.random() * 1, y: Math.random() * 1,
+      vx: (Math.random() - 0.5) * 0.0003, vy: (Math.random() - 0.5) * 0.0002,
+      r: 5 + Math.random() * 9,
+      kind: (Math.random() * 4) | 0,      // 0 spike, 1 coin, 2 bell, 3 padlock
+      hollow: Math.random() < 0.55,
+      a: 0.06 + Math.random() * 0.1,
+    });
+  }
+  const CONES = [
+    { ang: 0.6, spd: 0.00012, x: 0.18, y: 1.05, len: 0.9, spread: 0.22 },
+    { ang: 2.4, spd: -0.00017, x: 0.85, y: 1.08, len: 1.0, spread: 0.18 },
+    { ang: 1.4, spd: 0.00009, x: 0.5, y: -0.06, len: 0.85, spread: 0.15 },
+  ];
+  function glyph(g) {
+    const x = g.x * W, y = g.y * H, r = g.r;
+    cx.globalAlpha = g.a;
+    cx.strokeStyle = '#c9a227'; cx.fillStyle = '#c9a227'; cx.lineWidth = 1.4;
+    cx.beginPath();
+    if (g.kind === 0) { cx.moveTo(x, y - r); cx.lineTo(x + r, y + r); cx.lineTo(x - r, y + r); cx.closePath(); }
+    else if (g.kind === 1) { cx.arc(x, y, r * 0.8, 0, 7); }
+    else if (g.kind === 2) { cx.arc(x, y, r * 0.7, Math.PI, 0); cx.lineTo(x + r * 0.9, y + r * 0.6); cx.lineTo(x - r * 0.9, y + r * 0.6); cx.closePath(); }
+    else { cx.rect(x - r * 0.7, y - r * 0.4, r * 1.4, r * 1.1); cx.moveTo(x + r * 0.45, y - r * 0.4); cx.arc(x, y - r * 0.4, r * 0.45, 0, Math.PI, true); }
+    g.hollow ? cx.stroke() : cx.fill();
+    cx.globalAlpha = 1;
+  }
+  function frame(t) {
+    cx.clearRect(0, 0, W, H);
+    for (const c of CONES) {
+      const a = c.ang + Math.sin(t * c.spd) * 0.7;
+      const gx = c.x * W, gy = c.y * H, L = c.len * Math.max(W, H);
+      const grad = cx.createRadialGradient(gx, gy, 0, gx, gy, L);
+      grad.addColorStop(0, 'rgba(232, 220, 194, 0.10)');
+      grad.addColorStop(1, 'rgba(232, 220, 194, 0)');
+      cx.fillStyle = grad;
+      cx.beginPath();
+      cx.moveTo(gx, gy);
+      cx.arc(gx, gy, L, a - c.spread, a + c.spread);
+      cx.closePath(); cx.fill();
+    }
+    for (const g of GLYPHS) {
+      g.x = (g.x + g.vx + 1) % 1; g.y = (g.y + g.vy + 1) % 1;
+      glyph(g);
+    }
+    requestAnimationFrame(frame);
+  }
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(frame);
+</script>
