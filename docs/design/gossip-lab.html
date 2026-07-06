@@ -1,0 +1,284 @@
+<title>WHISPER HEIST — Gossip Lab</title>
+<style>
+  :root {
+    --ink: #0b0e14; --ink-2: #11161f; --panel: #141a24;
+    --parchment: #e8dcc2; --parchment-dim: #b7ab8c;
+    --brass: #c9a227; --seal: #8e2c35; --hollow: #4a6b8a;
+    --glow: #d9b94a; --grey: #55606e;
+    --line: rgba(201,162,39,0.22);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--ink); color: var(--parchment);
+    font-family: Palatino, 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    display: grid; grid-template-columns: 20rem 1fr; min-height: 100vh;
+  }
+  @media (max-width: 720px) { body { grid-template-columns: 1fr; } }
+  .controls {
+    background: linear-gradient(180deg, var(--ink-2), var(--ink));
+    border-right: 1px solid var(--line); padding: 1.4rem 1.3rem; overflow-y: auto;
+  }
+  .stage { position: relative; display: flex; flex-direction: column; }
+  h1 {
+    margin: 0 0 0.2rem; font-size: 1.35rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--parchment);
+  }
+  h1 .w { color: var(--brass); }
+  .sub { margin: 0 0 1.4rem; font-style: italic; color: var(--parchment-dim); font-size: 0.82rem; }
+  .group { margin-bottom: 1.35rem; }
+  .group > label.head {
+    display: block; font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.6rem; letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--hollow); margin-bottom: 0.7rem; border-bottom: 1px dashed var(--line); padding-bottom: 0.35rem;
+  }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.7rem; }
+  .row label { font-size: 0.82rem; color: var(--parchment-dim); }
+  .row output { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.72rem; color: var(--brass); font-variant-numeric: tabular-nums; min-width: 2.4rem; text-align: right; }
+  input[type=range] { width: 100%; accent-color: var(--brass); }
+  .slider { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.85rem; }
+  select {
+    width: 100%; background: rgba(11,14,20,0.85); color: var(--parchment);
+    border: 1px solid rgba(74,107,138,0.4); border-radius: 2px; padding: 0.45rem 0.5rem;
+    font-family: inherit; font-size: 0.9rem;
+  }
+  .btns { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+  button {
+    flex: 1; cursor: pointer; font-family: inherit; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.72rem;
+    padding: 0.7rem 0.5rem; border-radius: 2px; border: none;
+    transition: transform 100ms ease, box-shadow 100ms ease;
+  }
+  button.primary { background: linear-gradient(180deg, #d4af37, var(--brass) 55%, #9a7b1d); color: #14100a; box-shadow: 0 5px 14px rgba(201,162,39,0.22); }
+  button.ghost { background: transparent; color: var(--parchment-dim); border: 1px solid var(--line); }
+  button:hover { transform: translateY(-1px); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--parchment); outline-offset: 2px; }
+  canvas { display: block; width: 100%; flex: 1; min-height: 22rem; background: radial-gradient(ellipse at 50% 45%, #10151e 0%, #080a10 100%); }
+  .readout {
+    border-top: 1px solid var(--line); padding: 1rem 1.3rem;
+    background: var(--ink-2); max-height: 12rem; overflow-y: auto;
+  }
+  .readout h2 { margin: 0 0 0.6rem; font-size: 0.6rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--hollow); }
+  .chron { margin: 0; font-style: italic; font-size: 0.9rem; line-height: 1.6; color: var(--parchment); }
+  .chron .name { color: var(--brass); font-style: normal; }
+  .chron .lie { color: var(--seal); }
+  .legend { display: flex; gap: 1.1rem; flex-wrap: wrap; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--parchment-dim); padding: 0.7rem 1.3rem 0; }
+  .legend span::before { content: '●'; margin-right: 0.35em; }
+  .legend .solid::before { content: '◆'; color: var(--brass); }
+  .legend .hollow::before { content: '◇'; color: var(--hollow); }
+  .legend .g::before { color: var(--glow); }
+  .legend .n::before { color: var(--parchment-dim); }
+  .legend .y::before { color: var(--grey); }
+  @media (prefers-reduced-motion: reduce) { button { transition: none; } }
+</style>
+
+<div class="controls">
+  <h1><span class="w">Gossip</span> Lab</h1>
+  <p class="sub">Tune the thieves' minds. Plant one lie. Watch it rot as it travels the ring.</p>
+
+  <div class="group">
+    <label class="head" for="token">The lie you whisper</label>
+    <select id="token" aria-label="Token type to plant">
+      <option value="TRAP_AT">◆ TRAP_AT — "there's a trap"</option>
+      <option value="SAFE_PATH">◆ SAFE_PATH — "the way is clear"</option>
+      <option value="GEM_AT">◆ GEM_AT — "the gem is here"</option>
+      <option value="ALARM_AT">◆ ALARM_AT — "an alarm sits here"</option>
+    </select>
+    <div class="slider" style="margin-top:0.7rem">
+      <div class="row"><label for="conf">Whisper conviction</label><output id="confOut">0.90</output></div>
+      <input type="range" id="conf" min="0.4" max="1" step="0.01" value="0.9" />
+    </div>
+    <div class="row" style="margin-top:0.3rem"><label for="planter">Whisper into the ear of</label></div>
+    <select id="planter" aria-label="Which thief to plant the lie in"></select>
+  </div>
+
+  <div class="group">
+    <label class="head">Personality of the ring</label>
+    <div class="slider"><div class="row"><label for="cred">Credulity — trust in gossip</label><output id="credOut">0.80</output></div><input type="range" id="cred" min="0.2" max="1.2" step="0.01" value="0.8" /></div>
+    <div class="slider"><div class="row"><label for="fear">Fear — danger amplifier</label><output id="fearOut">1.60</output></div><input type="range" id="fear" min="1" max="2.5" step="0.05" value="1.6" /></div>
+    <div class="slider"><div class="row"><label for="decay">Confidence decay per hop</label><output id="decayOut">0.90</output></div><input type="range" id="decay" min="0.6" max="1" step="0.01" value="0.9" /></div>
+  </div>
+
+  <div class="group">
+    <label class="head">Mutation table</label>
+    <div class="slider"><div class="row"><label for="exag">Exaggerate — area grows</label><output id="exagOut">20%</output></div><input type="range" id="exag" min="0" max="60" step="1" value="20" /></div>
+    <div class="slider"><div class="row"><label for="drift">Drift — location wanders</label><output id="driftOut">10%</output></div><input type="range" id="drift" min="0" max="60" step="1" value="10" /></div>
+    <div class="slider"><div class="row"><label for="slip">Type-slip — belief warps kind</label><output id="slipOut">10%</output></div><input type="range" id="slip" min="0" max="60" step="1" value="10" /></div>
+  </div>
+
+  <div class="btns">
+    <button class="primary" id="hop">Debrief ▸ Hop</button>
+    <button class="ghost" id="reset">Reset</button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="legend">
+    <span class="solid">firsthand</span>
+    <span class="hollow">gossip</span>
+    <span class="g">sure</span>
+    <span class="n">unsure</span>
+    <span class="y">doubtful</span>
+  </div>
+  <canvas id="ring" aria-label="The thieves' gossip ring"></canvas>
+  <div class="readout">
+    <h2>The Chronicle so far</h2>
+    <p class="chron" id="chron">Whisper a lie, then hit <em>Debrief ▸ Hop</em> to watch it travel Moth → Vex → Silk → Brick → Nix → Ash.</p>
+  </div>
+</div>
+
+<script>
+  // WHISPER HEIST — Gossip Lab. Same closed vocabulary + mutation model as the game's memory-tokens.md.
+  const RING = [
+    { id: 'moth', name: 'Moth', cred: 1.0, fear: 1.0 },
+    { id: 'vex',  name: 'Vex',  cred: 1.0, fear: 1.0 },
+    { id: 'silk', name: 'Silk', cred: 0.6, fear: 1.0 },   // skeptic
+    { id: 'brick',name: 'Brick',cred: 1.3, fear: 1.0 },   // credulous
+    { id: 'nix',  name: 'Nix',  cred: 1.1, fear: 2.0 },   // coward, danger doubler
+    { id: 'ash',  name: 'Ash',  cred: 0.7, fear: 0.4 },   // hothead, discounts danger
+  ];
+  const GLYPH = { TRAP_AT: '▲', SAFE_PATH: '⋯', GEM_AT: '◆', ALARM_AT: '❧', SHORTCUT: '➤' };
+  const DANGER = { TRAP_AT: true, ALARM_AT: true, SAFE_PATH: false, GEM_AT: false, SHORTCUT: false };
+  const AREA = ['the cell', 'the corridor', 'the wing', 'the whole vault'];
+  const SLIP = { SAFE_PATH: 'SHORTCUT', GEM_AT: 'GEM_AT', TRAP_AT: 'TRAP_AT', ALARM_AT: 'TRAP_AT' };
+  const EPITHET = { TRAP_AT: ['a trap', 'a DEATHTRAP', 'a slaughter-pit'], ALARM_AT: ['a bell', 'a shrieking alarm', 'the whole watch'], SAFE_PATH: ['a clear path', 'an open road', 'a royal welcome'], GEM_AT: ['the gem', 'the PRIZE', 'the whole haul'], SHORTCUT: ['a shortcut', 'a secret way', 'a ghost-road'] };
+
+  // deterministic PRNG so a given tuning + seed replays identically (mulberry32)
+  let seed = 0x9e37;
+  function rng() { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+
+  const $ = id => document.getElementById(id);
+  const planter = $('planter');
+  RING.forEach((t, i) => { const o = document.createElement('option'); o.value = i; o.textContent = t.name + (t.id==='nix'?' (coward)':t.id==='silk'?' (skeptic)':t.id==='ash'?' (hothead)':t.id==='brick'?' (loyal)':''); planter.appendChild(o); });
+  planter.value = 0;
+
+  const S = {}; // slider state
+  const sliders = { conf:'confOut', cred:'credOut', fear:'fearOut', decay:'decayOut', exag:'exagOut', drift:'driftOut', slip:'slipOut' };
+  function readSliders() {
+    for (const k in sliders) S[k] = parseFloat($(k).value);
+    $('confOut').textContent = S.conf.toFixed(2);
+    $('credOut').textContent = S.cred.toFixed(2);
+    $('fearOut').textContent = S.fear.toFixed(2);
+    $('decayOut').textContent = S.decay.toFixed(2);
+    $('exagOut').textContent = S.exag + '%';
+    $('driftOut').textContent = S.drift + '%';
+    $('slipOut').textContent = S.slip + '%';
+  }
+  Object.keys(sliders).forEach(k => $(k).addEventListener('input', readSliders));
+
+  // beliefs[i] = token held by thief i (or null). token = {type, conf, area, firsthand, dead}
+  let beliefs, order, chron;
+  function reset() {
+    seed = 0x9e37;
+    beliefs = RING.map(() => null);
+    order = []; chron = [];
+    const p = parseInt(planter.value, 10);
+    beliefs[p] = { type: $('token').value, conf: S.conf, area: 0, firsthand: false, dead: false, origin: RING[p].name };
+    order = [p];
+    $('chron').innerHTML = '<span class="name">' + RING[p].name + '</span> now swears there is <span class="lie">' + EPITHET[$('token').value][0] + '</span> in ' + AREA[0] + '. <em>(your whisper)</em>';
+    draw();
+  }
+
+  function hop() {
+    // propagate from the last thief who has the belief to the next in the ring
+    const last = order[order.length - 1];
+    const next = (last + 1) % RING.length;
+    if (beliefs[next] && order.length > RING.length) return; // full loop
+    const src = beliefs[last];
+    if (!src || src.dead) return;
+    const t = RING[next];
+    // receipt: confidence * credulity * (fear once if danger)
+    let conf = src.conf * S.decay * (t.cred * (S.cred));
+    if (DANGER[src.type]) conf *= (t.fear === 2.0 ? S.fear : t.fear === 0.4 ? (1/S.fear) : 1);
+    conf = Math.max(0, Math.min(1, conf));
+    let type = src.type, area = src.area;
+    // mutation roll
+    const r = rng() * 100;
+    let mut = 'faithful';
+    if (r < S.exag) { mut = 'exaggerate'; area = Math.min(AREA.length - 1, area + 1); conf = Math.min(1, conf + 0.12); }
+    else if (r < S.exag + S.drift) { mut = 'drift'; }
+    else if (r < S.exag + S.drift + S.slip) { mut = 'slip'; type = SLIP[src.type] || src.type; }
+    const dead = conf < 0.15;
+    beliefs[next] = { type, conf, area, firsthand: false, dead, origin: src.origin };
+    order.push(next);
+
+    // chronicle line
+    const ep = EPITHET[type] || EPITHET.TRAP_AT;
+    const epi = ep[Math.min(ep.length - 1, area)];
+    let line;
+    if (dead) line = '<span class="name">' + t.name + '</span> shrugs — the rumor died on the way, too faint to believe.';
+    else if (mut === 'slip') line = '<span class="name">' + t.name + '</span> mishears: now it\'s <span class="lie">' + epi + '</span> — a different beast entirely.';
+    else if (mut === 'exaggerate') line = '<span class="name">' + t.name + '</span> swears it\'s <span class="lie">' + epi + '</span> across ' + AREA[area] + '. It grows in the telling.';
+    else if (mut === 'drift') line = '<span class="name">' + t.name + '</span> repeats it, but points somewhere slightly wrong.';
+    else line = '<span class="name">' + t.name + '</span> passes it on, a little less sure: <span class="lie">' + epi + '</span>.';
+    chron.push(line);
+    $('chron').innerHTML = chron.join('<br>');
+    $('chron').parentElement.scrollTop = 9999;
+    draw();
+  }
+
+  const cv = $('ring'), cx = cv.getContext('2d');
+  function size() { const r = cv.getBoundingClientRect(); cv.width = r.width * devicePixelRatio; cv.height = r.height * devicePixelRatio; cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); draw(); }
+  addEventListener('resize', size);
+
+  function trustColor(c) { return c >= 0.66 ? '#d9b94a' : c >= 0.33 ? '#b7ab8c' : '#55606e'; }
+  function draw() {
+    const w = cv.width / devicePixelRatio, h = cv.height / devicePixelRatio;
+    cx.clearRect(0, 0, w, h);
+    const cxp = w / 2, cyp = h / 2, R = Math.min(w, h) * 0.34;
+    // ring arcs showing propagation path
+    for (let i = 1; i < order.length; i++) {
+      const a0 = angle(order[i-1]), a1 = angle(order[i]);
+      cx.strokeStyle = 'rgba(201,162,39,0.28)'; cx.lineWidth = 2; cx.setLineDash([5,5]);
+      cx.beginPath();
+      cx.moveTo(cxp + Math.cos(a0)*R, cyp + Math.sin(a0)*R);
+      cx.lineTo(cxp + Math.cos(a1)*R, cyp + Math.sin(a1)*R);
+      cx.stroke(); cx.setLineDash([]);
+    }
+    RING.forEach((t, i) => {
+      const a = angle(i), x = cxp + Math.cos(a)*R, y = cyp + Math.sin(a)*R;
+      const b = beliefs[i];
+      // trust halo
+      if (b && !b.dead) {
+        cx.beginPath(); cx.arc(x, y, 30, 0, 7);
+        cx.fillStyle = trustColor(b.conf) + '22'; cx.fill();
+        cx.beginPath(); cx.arc(x, y, 30, 0, 7);
+        cx.strokeStyle = trustColor(b.conf); cx.lineWidth = 2; cx.stroke();
+      }
+      // body
+      cx.beginPath(); cx.arc(x, y, 20, 0, 7);
+      cx.fillStyle = '#141a24'; cx.fill();
+      cx.strokeStyle = 'rgba(232,220,194,0.4)'; cx.lineWidth = 1.5; cx.stroke();
+      // glyph of held belief (solid=firsthand, hollow=gossip)
+      if (b && !b.dead) {
+        cx.fillStyle = b.firsthand ? '#c9a227' : 'transparent';
+        cx.strokeStyle = b.firsthand ? '#c9a227' : trustColor(b.conf);
+        cx.font = '18px serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+        cx.lineWidth = 1.4;
+        const g = GLYPH[b.type] || '?';
+        cx.strokeText(g, x, y - 1);
+      } else if (b && b.dead) {
+        cx.fillStyle = '#55606e'; cx.font = '16px serif'; cx.textAlign='center'; cx.textBaseline='middle';
+        cx.fillText('·', x, y);
+      }
+      // name
+      cx.fillStyle = '#b7ab8c'; cx.font = '11px ui-monospace, monospace'; cx.textAlign = 'center';
+      cx.fillText(t.name.toUpperCase(), x, y + 34);
+    });
+    // center label
+    cx.fillStyle = 'rgba(74,107,138,0.7)'; cx.font = '10px ui-monospace, monospace'; cx.textAlign = 'center';
+    cx.fillText('THE DEBRIEF TABLE', cxp, cyp);
+  }
+  function angle(i) { return -Math.PI/2 + i * (Math.PI*2/RING.length); }
+
+  $('hop').addEventListener('click', hop);
+  $('reset').addEventListener('click', reset);
+  $('token').addEventListener('change', reset);
+  planter.addEventListener('change', reset);
+  ['conf'].forEach(k => $(k).addEventListener('change', reset));
+
+  readSliders();
+  reset();
+  size();
+</script>
