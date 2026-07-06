@@ -20,4 +20,4 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 
 **Follow-ups filed:** (1) residual same-goal loot-*target* dithering (esp. Ash, nights 4–5, ~4–5 plate crossings — needs target-level hysteresis, lower severity, partly a probe artifact); (2) `build/sim.js`/`build/gossip.js` have drifted from the shipped inline blocks (stale `log()`, no bond in `activeState`) so tests don't exercise shipped code — re-extract or add a `tests/run-tests.mjs` extractor.
 
-**Commit:** COMMIT_HASH_PLACEHOLDER
+**Commit:** 4c98af1
