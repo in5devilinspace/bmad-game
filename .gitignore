@@ -1,5 +1,10 @@
 node_modules/
 .remember/
 _bmad/config.user.yaml
+# Playwright is verification-only tooling installed by the game-verifier agent;
+# the game and node tests are dependency-free.
+package.json
+package-lock.json
+build/node_modules/
 *.log
 .DS_Store
