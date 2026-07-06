@@ -414,6 +414,10 @@
   }
 
   // ---- raid step ------------------------------------------------------------
+  // Commitment inertia: on a re-score, a thief keeps its current goal unless a
+  // DIFFERENT goal beats it by this margin. Stops utility-AI thrash (a thief
+  // ping-ponging survive<->protect-bond across a plate, re-arming the alarm).
+  var GOAL_HYSTERESIS = 0.25;
   function activeState(game) {
     return { unlocked: game.raid.unlocked || {}, bondPos: null };
   }
@@ -494,7 +498,14 @@
         th.rescore -= dt;
         if (th.rescore <= 0 || th.replanFlag) {
           var opts = scoreOptions(game.world, th, game.rng, activeState(game));
-          th.options = opts; th.pending = opts[0] || null; th.delib = 300; th.rescore = 2000; th.replanFlag = false;
+          th.options = opts;
+          var pick = opts[0] || null;
+          if (pick && th._planned) {
+            var curGoal = th.goalStack[0], curOpt = null;
+            for (var oi = 0; oi < opts.length; oi++) if (opts[oi].goal === curGoal) { curOpt = opts[oi]; break; }
+            if (curOpt && pick.goal !== curGoal && pick.score - curOpt.score < GOAL_HYSTERESIS) pick = curOpt;
+          }
+          th.pending = pick; th.delib = 300; th.rescore = 2000; th.replanFlag = false;
           continue;
         }
         advanceMove(game, th, dt);

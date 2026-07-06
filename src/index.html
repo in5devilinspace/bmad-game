@@ -484,6 +484,10 @@
   }
 
   // ---- raid step ------------------------------------------------------------
+  // Commitment inertia: on a re-score, a thief keeps its current goal unless a
+  // DIFFERENT goal beats it by this margin. Stops utility-AI thrash (a thief
+  // ping-ponging survive<->protect-bond across a plate, re-arming the alarm).
+  var GOAL_HYSTERESIS = 0.25;
   function activeState(game, thief) {
     var bondPos = null;
     if (thief && thief.bond) {
@@ -594,7 +598,17 @@
         th.rescore -= dt;
         if (th.rescore <= 0 || th.replanFlag) {
           var opts = scoreOptions(game.world, th, game.rng, activeState(game, th));
-          th.options = opts; th.pending = opts[0] || null; th.delib = 300; th.rescore = 2000; th.replanFlag = false;
+          th.options = opts;
+          var pick = opts[0] || null;
+          // commitment inertia: keep the current goal unless a different one clearly wins.
+          // A still-valid current goal keeps its freshly-scored path, so danger reroutes
+          // (and the fear-driven flip TO survive, which clears the margin) still apply.
+          if (pick && th._planned) {
+            var curGoal = th.goalStack[0], curOpt = null;
+            for (var oi = 0; oi < opts.length; oi++) if (opts[oi].goal === curGoal) { curOpt = opts[oi]; break; }
+            if (curOpt && pick.goal !== curGoal && pick.score - curOpt.score < GOAL_HYSTERESIS) pick = curOpt;
+          }
+          th.pending = pick; th.delib = 300; th.rescore = 2000; th.replanFlag = false;
           if (th.pending && th.pending.goal === 'survive' && dangerNear(dangerMap(th), th.pos) > 0) {   // winning option flipped to flee under danger
             if (!th._fleeing) { th._fleeing = true; log(game, 'FLEE', th.id, 'danger'); flagWitnesses(game, th.pos.x, th.pos.y, 6); }
           } else { th._fleeing = false; }
