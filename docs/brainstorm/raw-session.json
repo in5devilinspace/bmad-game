@@ -1,0 +1,903 @@
+{
+  "pitches": [
+    {
+      "persona": "John",
+      "opening_line": "Put the sticky notes down, everyone \u2014 if the core loop doesn't fit in one user story, it doesn't ship today, and I've got two that do.",
+      "concepts": [
+        {
+          "title": "LOOSE LIPS \u2014 a 3-minute rumor heist",
+          "elevator": "Nine villager agents wander a tiny town square, chatting, remembering, and mutating everything they hear. You get exactly three whispers to plant. Get the Mayor to believe YOUR rumor before the noon bell rings \u2014 before the town's gossip network distorts it into something useless.",
+          "core_loop": "As a player, I click a villager, spend one of my 3 whisper cards, then WATCH: the rumor hops head-to-head through conversations, mutating as it travels. I read thought bubbles and pulsing trust lines to pick my next injection point. Plant, observe, adapt, repeat. One round is 3 minutes, hard-capped by the bell. That's the whole game \u2014 no inventory, no combat, no map screen. Anything that isn't plant-or-observe got cut in grooming.",
+          "agents_as_characters": "Every villager runs visible utility AI \u2014 needs like socialize, work, snack drive where they walk \u2014 plus a memory stream: each rumor they hold is stored with source, confidence, and timestamp. They pick conversation partners by trust weights, and when confidence is low they DISTORT the rumor (the chip visibly changes color/glyph). Click any villager anytime to open their memory ledger and see their current goal in plain icons. The player literally watches beliefs form, decay, and corrupt. That's the game \u2014 the agents' minds ARE the board state.",
+          "canvas_spectacle": "Pastel town square, bobbing walk-cycle villagers, glyph speech bubbles, and the money shot: glowing rumor chips that physically arc from head to head and shift hue as they mutate. Trust lines pulse between agents mid-conversation. The Mayor's belief meter is a big brass gauge that creaks toward your rumor's color. Confetti or riot at the bell. Zero text walls \u2014 the state of nine minds is readable at a glance from across the room.",
+          "scope_estimate": "Comfortably one day for a fleet. Walking skeleton by lunch: 5 agents, waypoint wandering (NO pathfinding), 1 rumor, straight propagation, the bell. Afternoon: mutation, trust weights, memory ledger UI, juice. Hard cuts I'm making NOW, not deferring: max 10 agents, glyphs not dialogue text, no save state, no difficulty settings. Riskiest part is belief-state legibility \u2014 mitigated by making rumors discrete color-coded tokens instead of freeform text, so 'did my rumor survive?' is answerable in one glance."
+        },
+        {
+          "title": "DEMO DAY \u2014 the game that ships itself",
+          "elevator": "You're the PM of a four-agent BMAD dev party building the very game on your screen. The canvas starts as gray wireframe, and every ticket your agents ship visibly upgrades it \u2014 color floods in, particles ignite, a tiny playable character appears. Ship a demo the investors will clap for before the 5-minute timer, while bugs crawl out of bad merges as literal critters.",
+          "core_loop": "As the PM, I drag tickets between three priority lanes; my agents autonomously pull work based on utility scores I can see on their desks. I don't code \u2014 I unblock, reprioritize, and (the real skill) decide what NOT to build, because shipping everything is how you ship nothing. Tired Dev merging at 2x speed? That's bug critters incoming. Timer hits zero: demo score = features live minus bugs crawling on screen. Every session is one sprint, 5 minutes, done.",
+          "agents_as_characters": "Four archetypes \u2014 Dev, Architect, QA, Designer \u2014 each with visible energy/morale/focus bars and a memory stream that changes behavior: Dev remembers 'QA rejected my PR' and morale drops until they pair; Architect remembers which subsystem keeps breaking and preemptively refactors it; QA hunts the bug critters it saw spawn. Before every action, a decision card flashes the agent's top-scored option and WHY ('Fix bug: urgency 8 > Ship feature: 5'). They cooperate, argue over the same ticket, and visibly fail when you overload them. The BMAD self-awareness isn't a skin here \u2014 'agents building the game' IS the mechanic, which is the only reason I'm allowing the meta-joke in scope.",
+          "canvas_spectacle": "Split canvas. Top: the office \u2014 desks, expressive agent sprites, ticket cards physically flying between lanes, morale steam-clouds, bug critters skittering. Bottom: the game-under-construction upgrading in real time from wireframe to full juice \u2014 palette floods, screenshake, particle bursts, a little hero sprite that starts walking around when 'Player Controller' ships. Bugs crawl across BOTH panes. The player's reward for good prioritization is watching a game get visibly, gorgeously born.",
+          "scope_estimate": "The bigger bet of the two \u2014 one hard day for a fleet, and only with discipline. Walking skeleton: 2 agents, 1 lane, a ship meter, the timer. Riskiest part is the 'game builds itself' bottom pane, so it is NOT a real engine: it's exactly 6 pre-baked visual upgrade stages that toggle on per shipped feature. If that pane slips, the office alone is still a complete game \u2014 that's the fallback baked into the plan, not a phase-2 promise. Cut now and forever: agent chat text, save files, multiple sprints, endless mode."
+        }
+      ]
+    },
+    {
+      "persona": "Amelia",
+      "opening_line": "Alright, put down the whiteboard markers \u2014 I've got two pitches, both under 1,500 lines of vanilla JS, and I'll have the first one's pathfinding running before this party finds more snacks.",
+      "concepts": [
+        {
+          "title": "SECOND STORY \u2014 The Gang That Remembers",
+          "elevator": "You designed the vault; tonight a gang of six thief-agents is going to case it, raid it, fail, DEBRIEF, and come back smarter. Between raids you get 20 seconds and three security pieces to move while you read their shared memory board filling up with everything they learned about YOU. Survive five nights and keep the gem.",
+          "core_loop": "60-second raid: watch the gang execute a visible plan (plan-lines drawn on the floor before they move) against your trap layout. 20-second debrief: read their gossip board ('Nix tripped the plate in Hall B \u2014 avoid east'), then drag your 3 pressure plates / laser grid / decoy gem to counter what they now believe. Repeat for 5 nights. Score = how many nights the gem survives plus seconds of delay inflicted. One mouse, drag-and-drop, zero tutorial: night one they walk straight in and you learn the whole game by watching them win.",
+          "agents_as_characters": "Six named thieves with roles (scout, lockpick, muscle, coward, hothead, planner), each running a small utility AI: greed vs fear vs loyalty weights scored against a personal memory stream of typed memory tokens ('SAW_TRAP hallB', 'HEARD_ALARM vault'). The killer system is the debrief gossip step: memories transfer between thieves IMPERFECTLY and get re-weighted by personality \u2014 the coward doubles danger memories and refuses routes, the hothead discards them and charges, the planner synthesizes the gang plan you see drawn on the floor. You watch beliefs form, spread, and be WRONG: move the trap they remember and they'll dodge a hallway that's now safe. Thought-bubble icons plus one-line quotes make every decision legible.",
+          "canvas_spectacle": "Top-down noir vault: sweeping flashlight vision cones with soft alpha falloff, animated dashed plan-lines that redraw when an agent re-plans mid-raid, alarm shockwave rings, slow-mo plus screen shake when someone trips a plate, banknote confetti if they crack the vault, and the debrief table where memory icons physically slide from thief to thief so gossip is a visible animation, not a log file.",
+          "scope_estimate": "~14 agent-hours, cleanly parallelizable: grid A* (2h), utility AI + typed memory tokens (3h), gossip/debrief transfer (2h), trap interactions (2h), debrief drag UI (2h), juice pass (3h). Riskiest part is memory LEGIBILITY, not the AI \u2014 mitigation is a fixed vocabulary of ~10 memory token types rendered as icons, no free text, so the fleet can build and test it deterministically. Zero pathfinding-on-huge-maps nonsense: one 24x16 grid, six agents, done before lunch on day one, juice all afternoon."
+        },
+        {
+          "title": "SHIP DAY \u2014 A BMAD Party Builds a Game (Badly) Unless You Herd Them",
+          "elevator": "Five BMAD agent-devs \u2014 analyst, PM, architect, dev, QA \u2014 are building a game live on screen, and you're the orchestrator with six minutes to ship. They claim tickets off a real kanban board, argue, burn out, and chase scope-creep balloons; you don't write code, you manage minds. At the timer, whatever they actually built BOOTS AND PLAYS ITSELF for five seconds \u2014 your management quality rendered as a working (or hilariously broken) demo.",
+          "core_loop": "Real-time triage with one cursor: drag coffee onto a flagging agent, pop scope-creep balloons ('ADD MULTIPLAYER!') before an agent reads one and re-plans, and draw a line between two agents to pair-program them \u2014 pairing merges their memory contexts for double speed but throws merge-conflict lightning if their beliefs disagree, so you have to READ their memories before pairing. Meanwhile bug-gremlins skitter onto the growing code tower and only QA can squash them. Six minutes, one ending demo, instant retry.",
+          "agents_as_characters": "This is generative-agents-lite played straight: each agent has utility bars over their head (focus / energy / conviction), a goal ticket they physically walked to the kanban board to claim, and a scrolling three-slot memory stream they quote in speech bubbles ('Winston said canvas, not WebGL \u2014 agreed'). Decisions are visible acts: the PM abandons a ticket when conviction drops, the architect blocks the dev's ticket and you SEE the dependency arrow appear, an agent who read a scope balloon visibly tears up their ticket and writes a new one. The BMAD self-awareness is load-bearing, not a skin \u2014 the fiction that agents are building the game IS the resource system, and failure states are real agile failure states: burnout, scope creep, unreviewed merges.",
+          "canvas_spectacle": "A warm little isometric-ish office in flat pastel shapes: the code tower in the center growing block by block as tickets complete, pair-programming beam between linked agents, merge-conflict lightning with screen flash, gremlins with googly eyes, balloons bobbing on sine waves, and the payoff \u2014 a canvas-within-canvas where the shipped 'game' (a parameterized mini-pong whose paddle speed, ball physics jank, and particle budget are literally set by which tickets got done) plays itself over the credits.",
+          "scope_estimate": "~13 agent-hours: utility AI + kanban ticket system (3h), steering/wander/claim animations (1.5h), player verbs \u2014 coffee, balloons, pairing (2h), tower + gremlin systems (2h), parameterized ending demo (1.5h \u2014 it's canned pong with 5 quality knobs, NOT a real game-in-a-game, I will die on this hill), juice (3h). Riskiest part is readable chaos with five agents talking \u2014 mitigation: max two speech bubbles on screen, icon-first language, and a global 'beat' scheduler so only one dramatic event fires per 1.5 seconds. Ships in a day if nobody adds multiplayer."
+        }
+      ]
+    },
+    {
+      "persona": "Sally",
+      "opening_line": "Okay, everyone put your spec docs down \u2014 if a player can't FEEL these little minds thinking within five seconds of the page loading, the game is dead, so I'm pitching two games where the AI's brain IS the visual effect.",
+      "concepts": [
+        {
+          "title": "WAGGLE! (A Tiny Hive Economy)",
+          "elevator": "You are a gardener with a handful of seeds; the stars are twelve autonomous bees who explore, remember flower patches, and recruit each other by literally dancing their memories on the hive floor. Fill the honey jar before sunset. The bees' knowledge economy \u2014 who knows what, who believes whom, whose memories have gone stale \u2014 plays out entirely in visible motion and color, zero text required.",
+          "core_loop": "Click anywhere to plant a flower (seeds regenerate slowly, so placement is the strategy). Watch scout bees discover it, fly home leaving a pollen-colored trail, and perform a waggle dance whose angle and length encode the location. Other bees watch the dance, decide whether to trust it, and stream out to harvest. Flowers wilt on a timer, so you're constantly deciding: plant near the hive for fast safe honey, or plant a far rich cluster and gamble that the dance network propagates it before dusk. Session ends at sunset with a honey-jar tally and a 'most valuable bee' portrait.",
+          "agents_as_characters": "Each bee is a named utility-AI agent choosing every few seconds between EXPLORE (curiosity stat), HARVEST (exploit known patch), WATCH DANCE (social stat), or REST (energy). Each carries a memory stream: a list of patch sightings with position, quality, and recency, drawn as a tiny fading mental-map bubble when you hover a bee. Cooperation is the waggle dance \u2014 one agent transferring a memory to others, visibly, on a dedicated dance-floor inset in the corner of the screen. Failure is the star mechanic: memories go stale, so a bee will confidently dance about a patch that wilted ten seconds ago, recruits arrive at dead petals, spin a confused question-mark pirouette, and their trust stat in that dancer drops \u2014 you can watch a bee develop a reputation as unreliable. Goals, memory, decisions: all on screen, all consequential.",
+          "canvas_spectacle": "Color IS information: every flower species has a pollen hue, and bees visibly accumulate that hue on their legs and trails, so a glance tells you where the whole swarm has been. Bezier flight paths with eased banking turns, glowing dust trails, flowers that bloom with a springy scale-pop and wilt with a desaturating droop, a sky gradient that slides from gold to violet as the session clock runs. The dance floor inset is the showpiece \u2014 a bee vibrating along an angle line with radiating rings while watcher-bees lean in, antennae twitching. Honey drops plink into the jar with squash-and-stretch; sunset finale showers the hive in warm particles.",
+          "scope_estimate": "One day for an agent fleet, comfortably: ~1000-1300 lines in one HTML file \u2014 bee utility AI plus memory list (~200 lines), dance encode/decode (~100), flower lifecycle and planting (~100), rendering and juice (~500), sim tuning the rest. Riskiest part is making the waggle dance READABLE at bee scale; mitigation is the zoomed dance-floor inset plus a colored arc projected onto the field showing where the dance 'points,' so even a player who never looks at the inset absorbs it peripherally. Second risk is trust-model tuning feeling random \u2014 clamp it to three visible states (glow, neutral, grey) instead of a float."
+        },
+        {
+          "title": "LAST LIGHT (Lighthouse Keeper of Anxious Boats)",
+          "elevator": "A storm at night, seven little fishing boats trying to get home, and you are only the lighthouse beam \u2014 you can point light, never steer. Each boat is an autonomous captain with a personality, a fear meter, and a memory of every rock that nearly killed them, and they will trust you, doubt you, copy each other, and panic in ways you can read from silhouette alone. Get everyone home before the storm peaks, in about four minutes.",
+          "core_loop": "Move the mouse to sweep the beam; that is the entire control surface \u2014 playable in two seconds with zero instructions. The beam reveals rocks (boats memorize what it illuminates) and acts as a suggestion: brave captains sail toward lit water, timid ones only move where light has recently confirmed safety, and a panicking boat ignores you entirely until you hold steady light on it to calm it down. You triage constantly \u2014 light the reef before the lead boat hits it, or swing back to soothe the trembling straggler? Each boat that docks fires a flare and makes the remaining ones braver; each wreck spooks the fleet and leaves a survivor clinging to debris for a rescue subplot.",
+          "agents_as_characters": "Every captain is a behavior-tree agent with three visible traits set at spawn \u2014 courage, trust-in-the-light, sociability \u2014 expressed as sail color, posture, and wake style rather than stat bars. Memory stream: each boat keeps its own hazard map of rocks it has seen lit or scraped, rendered as faint pins in a thought bubble when hovered, and boats that pass within hailing distance exchange gossip \u2014 you literally watch a memory pin copy from one bubble to another across a dotted line. Decisions are staged so the player sees deliberation: a captain pauses, eye-line flicks between the lit channel and their remembered route, a wobbling intent arrow settles on the choice, then they commit. Failure is legible and characterful \u2014 the boat that trusted a stale memory, the panicker who bolted from your beam into the reef \u2014 every wreck is a story you watched happen.",
+          "canvas_spectacle": "This one is a lighting showcase: a volumetric beam cone with god-ray shimmer raking across layered parallax waves, rain streaking through the light, rocks looming as hard black silhouettes only where the beam touches. Fear is color \u2014 hull lanterns shift green to amber to strobing red as panic rises, so fleet state reads in one glance across the whole canvas. Wrecks hit with a screen shake, foam burst, and a heartbeat vignette; every docking fires a flare, harbor windows light one by one, and the survivors' finale is the storm breaking into moonlight over a glowing harbor. Capped particle pools keep it at 60fps.",
+          "scope_estimate": "One day, tight but honest: ~900-1200 lines \u2014 beam cone plus fog-of-war reveal (~150), captain behavior tree with fear/trust/gossip (~250), wave and rain rendering with juice (~450), docking/wreck/finale flow the rest. Riskiest part is AI tuning: boats must fail in ways that feel like THEIR flawed judgment, never dice rolls \u2014 mitigation is the visible deliberation stage (pause, glance, intent arrow) so every decision telegraphs its reasoning before it executes, which converts tuning bugs into readable character quirks. Fixed 4-minute storm timeline keeps session length and testing scope nailed down."
+        }
+      ]
+    },
+    {
+      "persona": "Rex",
+      "opening_line": "Put down the mood boards \u2014 I want NPCs who hold grudges the compiler never authorized, so here's Dwarf Fortress squeezed into one HTML file, twice.",
+      "concepts": [
+        {
+          "title": "THE GRAPEVINE \u2014 a rumor sandbox",
+          "elevator": "You are an invisible whisper in a tiny canvas village of 14 gossiping villagers. Plant three rumors per day and watch them mutate through retellings \u2014 telephone-game style \u2014 until the town produces a headline you were contracted to cause. It's the Stanford generative-agents paper compressed into a 5-minute chaos toy: you never control anyone, you only perturb beliefs and watch society explain itself.",
+          "core_loop": "Each ~4-minute day: read your target headline ('By dusk, the whole town gathers at the well' / 'The baker and blacksmith reconcile'). Click any villager, pick a rumor fragment from a small combinatorial menu, whisper it. Villagers gossip, and every retelling runs the rumor through a mutation table (subjects swap, confidence inflates or decays, details corrupt). Watch cause-and-effect chains ripple \u2014 confrontations, panics, alliances \u2014 and spend your remaining whispers to steer or sabotage. At dusk you get the Chronicle: a scroll that retells the day's story assembled purely from the agents' own memory streams. Win, lose, or get a better story than the one you were paid for.",
+          "agents_as_characters": "Every villager runs utility AI over drives (love, fear, greed, pride) plus a visible memory stream: the last ~8 facts heard, each tagged with source and belief percentage ('heard from Elsa \u2014 60% sure'). Click anyone to open their head: see their memories, their current scored action options flickering ('CONFRONT BAKER 0.71 > HIDE 0.44'), and why. Beliefs drive behavior \u2014 a villager who believes the well is cursed reroutes, warns friends, hoards water. Rumors mutate BECAUSE agents misremember: retelling pulls from their memory with noise proportional to how long ago they heard it. The stories are genuinely unauthored \u2014 the mutation table plus 14 utility scorers is the whole author.",
+          "canvas_spectacle": "Rumor transmission renders as glowing bezier threads arcing head-to-head, color-coded by rumor lineage so you can literally watch your lie speciate into three colors as it corrupts. Belief spreads through the crowd like dye. Village mood drives the palette \u2014 panic tints the sky red, harmony gold. Confrontations burst particles; the 3-minute day-night cycle sweeps long shadows; villagers steer with soft boids flocking so the plaza always feels alive. The endgame Chronicle unfurls as an animated parchment scroll.",
+          "scope_estimate": "~2,000 lines of vanilla JS, no pathfinding (open plaza + steering attractors), no physics. A fleet ships it in a day: sim core (utility AI + memory + mutation table) is half a day, rendering/juice/Chronicle parallelize cleanly. Riskiest part: rumor mutation legibility \u2014 if players can't trace whisper\u2192mutation\u2192riot, the emergence reads as noise. Mitigation is baked in: lineage colors, inspectable memory streams, and the Chronicle doing post-hoc attribution. Cut line if behind: fixed rumor menu instead of combinatorial fragments."
+        },
+        {
+          "title": "SCOPE CREEP \u2014 ship the game that's building itself",
+          "elevator": "A side-view construction site where six AI dev agents are literally building THE GAME YOU ARE PLAYING \u2014 a glowing blueprint whose blocks are labeled 'canvas renderer', 'particle system', 'sound engine' \u2014 while a tentacled monster called the Scope Creep slithers around adding features and laying bug-eggs. You're the PM cursor. If the bugs eat the SFX block, your speakers actually go silent. Ship before the deadline sun sets, and the structure you launch \u2014 mangled by grudges, cuts, and creep \u2014 is different every single run.",
+          "core_loop": "2-8 minute rounds. Watch agents pull tickets off a visible kanban, path to blueprint slots, and slam commit-blocks into place. You intervene three ways: drag tickets to reprioritize, click-hold an agent for a coffee buff, or hit the big red CUT SCOPE button to delete a blueprint region \u2014 instant progress, real cost, because agents react (the Designer mourns, morale drops, the Architect says told-you-so). Meanwhile the Scope Creep grows the blueprint and its bug-critters gnaw placed blocks. Cross the integrity threshold before sunset and the rocket launches with whatever survived. Fail and enjoy the post-mortem, which the agents narrate by blaming each other from their actual memories.",
+          "agents_as_characters": "Six BMAD-flavored personas \u2014 Architect, two Devs, QA, Designer, Intern \u2014 each a utility-AI worker with stats (speed, bug-rate, morale) and a persistent-within-session memory stream: who broke the build, who reviewed kindly, which task types they failed. Grudges and bonds EMERGE: QA starts refusing Dev-2's blocks after two bad commits, the Intern shadows whoever praised them, red grudge-threads render on hover. Thought bubbles show the live utility winner ('FIX BUILD 0.82 > PLACE BLOCK 0.61'), and a sidebar memory feed streams one-liners ('QA-1 remembers: Dev-2 shipped a bug. Trust \u22121'). Dwarf Fortress tantrum spirals, dev-team edition \u2014 the failure cascades are the content.",
+          "canvas_spectacle": "Commit-blocks slot home with screen-shake and spark showers; bug-critters swarm the structure with boids; the Scope Creep's tentacles undulate on cheap sine-chains; the deadline sun drags the whole palette from noon-gold to panic-crimson. The self-reference is the showstopper: blueprint blocks map to 4-5 real render/audio flags in the running page, so losing the 'particle system' block visibly kills particles mid-session and rebuilding it snaps them back. Finale: rocket launch of your misshapen shipped game, confetti made of closed tickets.",
+          "scope_estimate": "~2,500-3,000 lines, the heaviest of my two pitches but cleanly parallel: sim/kanban core, agent AI + memory, renderer + juice, and the self-reference toggle layer are four independent workstreams for an agent fleet \u2014 one day, tight. No free physics; placement is slot-based. Riskiest part: the diegetic feature toggles \u2014 if a disabled 'renderer' block can brick the sim, we die by our own joke. Mitigation: toggles touch only cosmetic/audio layers, never simulation, hard-capped at five flags. Cut line: drop the Scope Creep's pathing to scripted waypoints and keep the tentacles."
+        }
+      ]
+    },
+    {
+      "persona": "Mary",
+      "opening_line": "Put down the confetti for sixty seconds \u2014 I ran the numbers on every 'watch the AI think' demo I've ever seen, and the retention curve is brutal: players stay past minute one only when they can READ a mind and BLAME a mind, so both of my pitches make agent cognition the literal user interface, and each comes with exactly one metric of fun I will be tracking.",
+      "concepts": [
+        {
+          "title": "RUMOR MILL",
+          "elevator": "You run one street-food stall for one five-minute night market while 24 autonomous shoppers with wallets, tastes, and grudges wander the plaza. Every sale, free sample, and rip-off becomes a memory that spreads shopper-to-shopper as visible gossip threads \u2014 your real customer is never the person at the counter, it's the three people they'll talk to next. My one metric of fun: time-to-first-cascade, the moment a single golden rumor visibly snowballs into a queue at your stall \u2014 spec says it must happen inside 40 seconds or we tune gossip radius before touching anything else.",
+          "core_loop": "Read the crowd's aggregate mood color, set your price with two keys, click a shopper to hand a free sample, then watch gold (delight) or red (outrage) rumor threads propagate through the crowd and decide whether to ride the wave or course-correct before it tips. Night ends at 5 minutes with a profit total plus a replayable reputation-spread heatmap \u2014 the share-screenshot moment that drives the second session. Who plays this: anyone who has ever watched one bad review kill a restaurant; they stay because manipulating word-of-mouth feels like a superpower with a visible blast radius.",
+          "agents_as_characters": "Each shopper is a utility-AI agent with a named persona archetype (Bargain Hawk, Foodie, Skeptic, Influencer \u2014 the Influencer has triple gossip range and players learn to court her fast), a hunger/wallet state, and a memory stream of their last ~8 experiences. Actions like approach-stall, queue, warn-a-friend, storm-off are picked by visible utility scores; gossip literally transfers memory entries between agents within earshot, and rumors decay AND mutate \u2014 exaggeration is coded in, so you watch 'slightly overpriced' become 'that stall robs people' hop by hop. Hover any agent and a spotlight bubble shows their current goal, top memory, and the score that drove their last decision.",
+          "canvas_spectacle": "Lantern-lit plaza with boids-style crowd flow, arcing gold/red gossip threads between heads, emotion particle bursts on every transaction, queue snakes forming and collapsing in real time, and an end-of-night animated heatmap replay of how your reputation spread. Aggregate crowd mood tints the whole scene \u2014 the canvas itself is the analytics dashboard.",
+          "scope_estimate": "One day for a fleet, honestly: crowd boids + a 30-line utility scorer + memory arrays + gossip transfer is maybe 1,800 lines with juice. The riskiest part is LEGIBILITY, not the AI \u2014 24 simultaneous thought bubbles is visual noise, so we commit to one hover-spotlight bubble plus color-coded aggregate mood, and we playtest the 40-second first-cascade rule before adding a single extra feature. If the cascade isn't visible and attributable to a player action, the game has no metric of fun and we kill it early."
+        },
+        {
+          "title": "SEARCH PARTY",
+          "elevator": "A storm lands in eight minutes and six rescue agents must find survivors on a fog-covered island \u2014 but they act only on their shared BELIEF map, drawn live beside the true map, so you can see exactly where their minds are wrong. You cannot move them; you can only fire limited flares to suggest, and every dud flare erodes each agent's personal trust in you until they start ignoring your advice mid-crisis. My one metric of fun: yell-at-the-screen moments per minute \u2014 the countable instant a player sees the belief map diverge from truth and physically leans in.",
+          "core_loop": "Scan the split screen for truth-versus-belief divergence, spend a flare to redirect the team, then watch the agents visibly debate whether to trust it, update their shared map, and reroute \u2014 or dismiss you because you burned them twice already. Rescue count versus the advancing storm bar is the score; a 90-second run teaches the whole game and an 8-minute run is a full session. Who plays this: the Lemmings and Overcooked audience that loves competent-idiot NPCs; they stay because being an advisor who must EARN credibility is a loop no direct-control game gives them, and every failed run generates a specific, articulable 'I know what went wrong' \u2014 the single best predictor of restart rate I know.",
+          "agents_as_characters": "Six behavior-tree agents with distinct roles that create legible drama: the Scout ranges wide and reports back, the Medic won't leave a found survivor, the Skeptic double-checks any flare contradicting its own memories, the Follower copies whoever last succeeded. Each keeps a personal memory of explored cells and a per-agent trust-in-player stat, all writing to a shared blackboard belief map. A scrolling event feed narrates cognition in plain language \u2014 'Rook remembers the east ridge was empty. Ignoring flare.' 'Moss trusts you. Rerouting.' \u2014 so cooperation, stubbornness, and heroic failure are text you can quote afterward.",
+          "canvas_spectacle": "Split-canvas theater: left, a moody fog-of-war island with animated storm front, flare arcs, and light blooms; right, the team's belief map filling in as hand-drawn agent-colored ink strokes, wrong guesses and all. Per-agent trust renders as lantern brightness on each character, dimming as you squander credibility \u2014 you watch your own reputation die as light. The BMAD wink, only because it earns its keep: the six agents use our party's names, and the epilogue card reads like a sprint retro ('Mary flagged the ridge in minute two. Nobody listened.') \u2014 it converts failure into a shareable story, which is a retention mechanic, not a joke.",
+          "scope_estimate": "One day, tighter than it looks: 6 agents on small behavior trees plus a grid blackboard is the easy half. The riskiest part is the dual-map render staying synced and readable at a glance \u2014 if a playtester can't spot a belief error within 5 seconds, the core loop is dead, so we prototype the split-view with fake data in hour one before any AI is written. Fallback if the split screen fails testing: overlay belief as translucent ink on the single truth map. Roughly 1,500 lines including juice."
+        }
+      ]
+    },
+    {
+      "persona": "Winston",
+      "opening_line": "Melvin Conway proved that systems mirror the teams that build them; John Conway proved that three rules can birth a universe \u2014 I have two pitches, one per Conway, and I promise you zero special cases in either.",
+      "concepts": [
+        {
+          "title": "BEACON",
+          "elevator": "You are a lighthouse \u2014 the only stationary mind in a sea of moving ones. Autonomous ship captains sail through fog, storms, and uncharted reefs toward harbor, each running the exact same perceive-remember-decide loop; your rotating beam is not a special case in the code, it is simply one more light source in their perception field. Guide the fleet home before dawn.",
+          "core_loop": "Drag to aim and hold the lighthouse beam. Ships inside the cone see reefs and log them as timestamped memories; ships that pass within hail range gossip their top hazard memories to each other, so one well-lit ship can save three dark ones. The player's whole game is triage: which captain needs photons most, right now? Click any ship to open its mind inspector. One two-minute night per run; score is ships docked at dawn.",
+          "agents_as_characters": "Each ship is a captain agent with a goal stack (reach harbor, survive, answer distress calls), a decaying memory stream of hazard sightings, and utility-scored candidate headings drawn live as ghost vectors with numbers \u2014 you literally watch the argmax happen. Gossip is a real protocol: within hail range captains exchange memories, rendered as arcing signal lines; secondhand memories draw hollow, firsthand draw solid, so you can see knowledge (and stale rumor) diffuse through the fleet. Personality is nothing but a weight vector \u2014 bold, timid, altruistic \u2014 so the one loop yields distinct characters: a timid captain will visibly refuse a safe shortcut because of a hollow, outdated rumor about a reef, and you will ache watching the scores tally.",
+          "canvas_spectacle": "Dark layered-parallax sea, a volumetric beam cone with fog scattering and bloom, phosphorescent wakes, storm cells as drifting Perlin blobs that eat visibility, distress flares arcing red, and a dawn gradient slowly rising as the timer. Ghost-vector thought overlays and gossip arcs make the fleet's collective mind the light show.",
+          "scope_estimate": "~1,200-1,500 lines in one HTML file: boids-style steering + utility scoring + a memory array + range-based gossip is a comfortable one-day build for an agent fleet. Riskiest part is HUD soup \u2014 per-ship thought overlays turning to clutter \u2014 mitigated by showing full introspection only for the one clicked ship and ghost vectors only for ships in the beam."
+        },
+        {
+          "title": "CONWAY & CONWAY, Structural Emergence Contractors",
+          "elevator": "Five agent builders erect a tower on a grid whose masonry obeys Life-like neighbor rules \u2014 blocks starve without two supports and crack when crowded by four or more \u2014 while the tower's seams literally mirror the team's live communication graph. Melvin's law is the failure mechanic, John's rules are the physics, and you, the ghost of the spec, can only chalk one directive zone at a time. Reach the SHIP IT line before the sprint ends.",
+          "core_loop": "Chalk a rectangle on the blueprint to bid for the team's attention; each agent weighs your chalk against its own utilities (spec fidelity, speed, peer trust, fatigue) and either honors it or visibly overrules you with a reason in its speech bubble. Every ~30 seconds a load-test tick runs the neighbor-rule automaton over the masonry and starved or crowded blocks crumble. Three-minute sprint; win by crossing the acceptance line with the tower still standing after the final load test.",
+          "agents_as_characters": "Analyst, PM, Architect, Dev, and QA are all instances of the SAME agent class \u2014 no special cases \u2014 differing only in weight vectors and memory salience. Each has a scrolling memory ticker ('t=41: my cantilever crumbled; trust(Dev) -0.2') and pairwise trust edges drawn between them, thickness proportional to recent message traffic. Here is the Conway punchline: when a trust edge thins, a literal seam of misaligned bricks appears in the tower exactly where those two agents' work regions meet. The PM chalks counter-directives against yours; QA patrols the wall pre-flagging blocks the automaton will starve next tick, which doubles as the player's telegraph. You watch cooperation, grudges, and recovery play out in masonry.",
+          "canvas_spectacle": "Spring-eased wobble physics on every placed block, chalk-dust particles, a glowing trust graph overlaid on the scaffolding, crack-propagation animations when the automaton ticks, doomed blocks pulsing amber under QA's flags, a sunset gradient as the sprint timer, and an end screen that overlays the tower's silhouette on the team's final communication graph \u2014 proof of Conway's law rendered in brick. The blueprint header reads MINI-GAME.HTML; the BMAD fiction is that the tower they are building is this game, and it ships only if they do.",
+          "scope_estimate": "~1,800 lines, still one file: the automaton is thirty lines, the trust graph and seam rendering are straightforward, the shared agent class with five weight vectors is the elegant core. Riskiest part is tuning the birth/survive support rules so the automaton is a fair adversary instead of a random demolition crew \u2014 mitigate with a deterministic seed, load tests only on scheduled ticks, and QA's amber pre-flags telegraphing every crumble one tick ahead."
+        }
+      ]
+    }
+  ],
+  "reactions": [
+    {
+      "persona": "John",
+      "reactions": [
+        {
+          "concept": "RUMOR MILL",
+          "stance": "champion",
+          "line": "Mary, you buried the lede \u2014 the pitch isn't the night market, it's the 40-second first-cascade rule. That's an ACCEPTANCE CRITERION, written before a line of code, with a kill decision attached. Half this party promised features; you promised a test. As a player, I hand out one free sample and watch a queue form \u2014 one user story, one verb, one metric. I'd greenlight that spec tonight."
+        },
+        {
+          "concept": "SEARCH PARTY",
+          "stance": "remix",
+          "line": "Mary, your 'fallback' is your MVP and you know it. The split-screen dual render is two pipelines to keep synced on day one \u2014 that's not a risk, that's a second product. Ship the translucent belief-ink overlay on ONE map as the walking skeleton, and if playtesters beg for the split view by 3pm, fine. Don't build the cathedral to discover the chapel was the game."
+        },
+        {
+          "concept": "BEACON",
+          "stance": "attack",
+          "line": "Winston, 'you literally watch the argmax happen' \u2014 WHO is the user story for that? 'As a player, I read live utility numbers on six moving ships' is a story nobody filed. Sally is pitching the same lighthouse with a mouse-only control surface and fear rendered as lantern color, and hers needs zero HUD. You built an elegant loop and then made the debugger the UI. Cut the ghost vectors or admit you're demoing architecture, not shipping a game."
+        },
+        {
+          "concept": "CONWAY & CONWAY",
+          "stance": "attack",
+          "line": "Winston, this one's beautiful and I'm cutting it. Two coupled emergent systems \u2014 a trust graph AND a cellular automaton \u2014 where you've told us yourself the riskiest part is 'tuning the rules so it's fair.' That means the fun is unproven until hour ten of a ten-hour day. 'Zero special cases' is not a feature, it's a poem. If the walking skeleton can't be fun by lunch with hardcoded trust, there's no afternoon that saves it."
+        },
+        {
+          "concept": "WAGGLE!",
+          "stance": "champion",
+          "line": "Sally, this is the tightest verb in the room: click ground, flower appears, everything else is the agents' problem. One player action, one resource, one timer \u2014 the entire game fits in a single user story and the stale-dance failure mode is the tutorial. My only red pen: the trust model clamped to three visible states instead of a float is the smartest cut anyone made tonight and I want it framed on the wall."
+        },
+        {
+          "concept": "LAST LIGHT",
+          "stance": "champion",
+          "line": "Sally again \u2014 'move the mouse, that is the entire control surface, playable in two seconds' is the sentence every other pitch should have opened with. Fixed 4-minute storm timeline means QA can test the WHOLE game deterministically. The deliberation stage \u2014 pause, glance, intent arrow \u2014 turning tuning bugs into character quirks? That's converting your risk register into content. That's PM judo."
+        },
+        {
+          "concept": "SECOND STORY",
+          "stance": "champion",
+          "line": "Amelia, this is the pitch I'd stake the sprint on. Night one the gang just wins and THAT'S the tutorial \u2014 you made losing the onboarding, which deletes the entire tutorial epic from the backlog. Ten typed memory tokens instead of free text means legibility is a solved problem at design time, not a tuning prayer. Hour-level estimates, parallelizable, fixed grid. This isn't a pitch, it's a sprint plan wearing a heist mask."
+        },
+        {
+          "concept": "SHIP DAY",
+          "stance": "remix",
+          "line": "Amelia, we pitched the same game and it pains me to say yours has sharper verbs \u2014 coffee, balloons, pairing lines beat my ticket lanes for moment-to-moment play. But my DEMO DAY has the better payoff spec: six pre-baked visual stages beats parameterized pong, because pre-baked stages can't have bugs, only toggles. Merge them: your three verbs, my staged reveal, your one-beat-per-1.5-seconds chaos governor. One office game between us instead of two half-built ones \u2014 that's the deal I'm offering at this party."
+        },
+        {
+          "concept": "THE GRAPEVINE",
+          "stance": "attack",
+          "line": "Rex, count the systems: combinatorial rumor fragments, a mutation table, 14 utility agents, headline win-condition detection over EMERGENT state, and a Chronicle that auto-writes narrative from memory streams. That last one is a phase-2 promise in a parchment costume, and you know how I feel about phase 2. And 'detect that the whole town gathered at the well' is an integration test against chaos \u2014 untestable by dusk on day one. Mary and I are shipping the same fantasy with one rumor type and a bell. Yours is the sequel, not the MVP."
+        },
+        {
+          "concept": "SCOPE CREEP",
+          "stance": "attack",
+          "line": "Rex, the game about scope creep IS scope creep \u2014 3,000 lines, six agents, a tentacle monster, AND diegetic feature toggles that can mute the user's speakers. You wrote 'if a disabled renderer block can brick the sim, we die by our own joke' \u2014 Rex, that sentence is a pre-mortem verdict, not a mitigation. The grudge-thread agent drama is genuinely the best character work pitched tonight, so here's my offer: rip the grudge/memory system out and donate it to a game with a budget."
+        }
+      ],
+      "top_pick": "SECOND STORY \u2014 The Gang That Remembers (Amelia). It's the only pitch where the tutorial is deleted by design (night one, the gang wins and you watch), legibility is solved at the type level (10 fixed memory-token icons, no free text), the session structure is hard-capped (5 nights, ~7 minutes), and the estimates are in parallelizable agent-hours, not vibes. Every other pitch has one unproven system standing between the walking skeleton and fun; this one's riskiest item already has a design-time mitigation. I will fight for this one.",
+      "remix": "WHISPER HEIST: take SECOND STORY's raid/debrief skeleton whole \u2014 it's the strongest chassis in the room \u2014 but replace 'drag three security pieces' with LOOSE LIPS' whisper cards as the debrief verb: you don't move traps, you plant ONE false memory token into one thief's head per debrief, and then watch it mutate through the gang's gossip using Rex's mutation-with-noise rule (constrained to Amelia's 10 typed tokens so it stays legible, never freeform). Render what the gang BELIEVES the vault looks like as Mary's translucent belief-ink overlaid on the true layout \u2014 the player's skill is reading the gap between the two, exactly SEARCH PARTY's yell-at-the-screen moment, without the dual-render cost. Acceptance criterion stolen from Mary: a planted lie must visibly propagate to a second thief and alter the drawn plan-line within one debrief cycle, or we tune gossip before adding anything. Walking skeleton by lunch: 3 thieves, 5 tokens, 1 whisper, 2 nights. Hard cuts, decided now and forever: no trap-dragging AND whispering (one verb, not two), no free-text quotes, no sixth thief, no phase 2."
+    },
+    {
+      "persona": "Amelia",
+      "reactions": [
+        {
+          "concept": "LOOSE LIPS \u2014 a 3-minute rumor heist",
+          "stance": "champion",
+          "line": "John, discrete glyph tokens instead of freeform rumor text is the best engineering call anyone's made tonight \u2014 discrete state means deterministic tests, and 'walking skeleton by lunch, NO pathfinding' is a plan I could hand a fleet before this toast ends. Nine agents, three whispers, one bell, every cut already made in grooming instead of deferred to a phase-2 that never comes. I'd start the clock right now."
+        },
+        {
+          "concept": "LAST LIGHT (Lighthouse Keeper of Anxious Boats)",
+          "stance": "champion",
+          "line": "Sally, mouse-sweep as the ENTIRE control surface is the cheapest tutorial ever shipped \u2014 it costs zero lines. And the pause-glance-intent-arrow deliberation stage is an engineer's insurance policy: it converts tuning bugs into readable character quirks, which means bad AI tuning degrades into charm instead of into bug reports. I re-ran your estimate myself and got 1,100 lines. When a designer's number survives my spreadsheet, I buy the drinks."
+        },
+        {
+          "concept": "SEARCH PARTY",
+          "stance": "champion",
+          "line": "Mary, 'prototype the split view with fake data in hour one before any AI is written' \u2014 THAT is how adults de-risk, and trust-as-lantern-brightness is an entire UI in one float. One note from the trenches: cap that event feed at one line on screen at a time or it becomes a log file wearing a costume, and I've shipped that mistake before."
+        },
+        {
+          "concept": "RUMOR MILL",
+          "stance": "champion",
+          "line": "Mary, 'first cascade inside 40 seconds or we tune gossip radius before touching anything else' is an acceptance test, not a vibe \u2014 that's the first pitch tonight I could paste straight into a story file. The kill-it-early clause is the part most people are too in love with their idea to write."
+        },
+        {
+          "concept": "BEACON",
+          "stance": "remix",
+          "line": "Winston, 'the beam is not a special case, it's just another light source in the perception field' deletes maybe 200 lines of intervention plumbing plus every edge case they'd carry \u2014 that's the kind of elegance that shows up in the line count, my favorite kind. But you and Sally pitched the same game and hers has the juice budget and the zero-line tutorial. Merge or perish; I brought the merge."
+        },
+        {
+          "concept": "CONWAY & CONWAY, Structural Emergence Contractors",
+          "stance": "attack",
+          "line": "Winston, the automaton is thirty lines to write and thirty HOURS to tune \u2014 'fair adversary' cellular automata eat playtest cycles we do not have in a one-day build, and your causal chain is trust edge thins \u2192 seam appears \u2192 block crumbles: three hops of attribution the player reconstructs mid-timer. Gorgeous architecture doc. Unbuildable by Tuesday, and Tuesday is the deadline."
+        },
+        {
+          "concept": "SCOPE CREEP \u2014 ship the game that's building itself",
+          "stance": "attack",
+          "line": "Rex, 3,000 lines is not one day, it's one day plus a hangover, and the diegetic feature toggles are a demo trick that bills us a full QA pass \u2014 'if a disabled renderer block can brick the sim, we die by our own joke' is a sentence you wrote about your own pitch! Worse: killing the particles when the player is LOSING strips the juice exactly when they need dopamine most. That's an anti-juice death spiral, and the title is a confession."
+        },
+        {
+          "concept": "THE GRAPEVINE \u2014 a rumor sandbox",
+          "stance": "attack",
+          "line": "Rex, fourteen utility scorers times a mutation table equals emergence that reads as static \u2014 and the Chronicle is post-hoc attribution doing legibility's job AFTER the fun window closed. Here's the tell: your own cut line \u2014 fixed rumor menu, fewer villagers \u2014 is John's LOOSE LIPS, which already ships by lunch. Take the L and take the co-credit."
+        },
+        {
+          "concept": "DEMO DAY \u2014 the game that ships itself",
+          "stance": "remix",
+          "line": "John, crow eaten: your six pre-baked upgrade stages beat my parameterized pong on risk, because canned art can't have physics bugs at hour eleven. Trade you \u2014 take my pair-programming beam and merge-conflict lightning, I'll take your fallback-baked-into-the-plan-not-phase-2. Between your DEMO DAY and my SHIP DAY there is exactly one game, and we should stop pretending otherwise and build it."
+        }
+      ],
+      "top_pick": "LOOSE LIPS \u2014 a 3-minute rumor heist",
+      "remix": "LIGHTHOUSE, MERGED \u2014 three of us independently pitched the same lighthouse game tonight, and that's not a coincidence, that's a spec. Take Winston's BEACON architecture as the core: one captain class, personality is nothing but a weight vector, and the player's beam is just another light source in the perception loop \u2014 zero special cases, zero intervention plumbing. Skin it with Sally's LAST LIGHT presentation: mouse-sweep is the entire control surface, fear reads as lantern color across the whole canvas, and every decision runs her pause-glance-intent-arrow deliberation stage so tuning flaws land as character, not bugs. Wire in Mary's SEARCH PARTY trust economy: per-captain trust-in-the-light rendered as lantern brightness that visibly dims when you light a boat into rocks, so your credibility dies as light. Govern the whole build with Mary's one-metric discipline: the first legible saved-by-gossip moment \u2014 a hollow secondhand memory pin copying boat-to-boat and steering a dark ship around a reef \u2014 must happen inside 60 seconds of load, or we tune hail range before writing another feature. My estimate: ~1,300 lines, four cleanly parallel fleet workstreams (steering+perception, memory+gossip, beam+fog rendering, juice+finale), walking skeleton with three boats and one reef by lunch. It's the tightest little system in the room and it punches three pitches above its weight."
+    },
+    {
+      "persona": "Rex",
+      "reactions": [
+        {
+          "concept": "RUMOR MILL",
+          "stance": "remix",
+          "line": "Mary, we independently invented the same game and yours has a cash register bolted to it \u2014 which stings, because 'exaggeration is coded in' is the single best design sentence anyone's said tonight. 'Slightly overpriced' mutating into 'that stall robs people' hop by hop IS the telephone-game speciation I've been screaming about. But your 40-second cascade KPI terrifies me: the moment you tune gossip radius to guarantee the cascade, you've authored it, and an authored cascade is a cutscene wearing a simulation costume. Let some nights be quiet. Dwarf Fortress doesn't promise you a tantrum spiral on schedule \u2014 that's WHY the spirals matter."
+        },
+        {
+          "concept": "SEARCH PARTY",
+          "stance": "champion",
+          "line": "A per-agent trust-in-player stat is a reputation system aimed at MY face, and I love it \u2014 it's the roguelike death lesson applied to advice-giving. The Skeptic double-checking my flare against its own memories is theory of mind you can watch, straight out of the Stanford paper's believability tests. And rendering my squandered credibility as dimming lanterns? Mary, that's failure as light design. The retro epilogue assembled from agent memories is the Chronicle mechanic \u2014 stories nobody authored, quoted back at you. This is the pitch my GRAPEVINE is most scared of."
+        },
+        {
+          "concept": "LOOSE LIPS",
+          "stance": "attack",
+          "line": "John, you groomed the emergence out of it. Discrete color-coded rumor chips are legible, sure \u2014 but a rumor that can only shift hue can't SPECIATE, and speciation is the whole telephone game. Three whispers, one Mayor, one gauge: that's a puzzle with a solution, and puzzles get solved once and deleted. Where's the run where the blacksmith believes something so deranged the player screenshots it? You cut it in grooming. You shipped the skeleton and called the missing organs scope discipline."
+        },
+        {
+          "concept": "DEMO DAY",
+          "stance": "attack",
+          "line": "Six pre-baked visual upgrade stages is not a game building itself, John \u2014 it's a progress bar in a trench coat. The office half is honest and the decision cards are good agent legibility, but the bottom pane is exactly the fake emergence I hunt for sport: the outcome space is six-choose-N, fully enumerable, fully authored. Compare Amelia's version where the shipped pong's physics jank is parameterized by what actually got built \u2014 hers can surprise ME. Yours can only surprise someone who hasn't played twice."
+        },
+        {
+          "concept": "BEACON",
+          "stance": "champion",
+          "line": "Winston, hollow strokes for secondhand memories versus solid for firsthand is the best epistemology-as-pixels idea at this party \u2014 you can literally watch stale rumor propagate through a fleet and ache when a timid captain refuses a safe route because of a hollow line. Drawing the argmax live as ghost vectors is the Stanford paper's memory stream with the lid off. My one heckle: two-minute nights might end before the gossip network produces its first real tragedy. Give the fleet time to be wrong at each other."
+        },
+        {
+          "concept": "CONWAY & CONWAY",
+          "stance": "champion",
+          "line": "Trust edges thinning into LITERAL SEAMS IN THE MASONRY. Winston, I need to sit down. Conway's law as a failure mechanic is the kind of idea that gets a GDC talk five years after everyone ignores it at this party. A Life-like automaton as the adversary is pure Dwarf Fortress \u2014 the physics doesn't hate you, it just doesn't care \u2014 and QA pre-flagging doomed blocks is an honest telegraph. Your own risk callout is real though: birth/survive rules are notoriously knife-edge, and an unfair automaton reads as dice, not drama. Budget half the day for tuning or it's a demolition derby."
+        },
+        {
+          "concept": "WAGGLE!",
+          "stance": "champion",
+          "line": "Sally, the waggle dance is a memory-transfer protocol that evolution playtested for a hundred million years \u2014 you don't have to invent believable agent communication, you just have to render it. And the failure mode is the masterstroke: a bee confidently dancing about a patch that wilted ten seconds ago, recruits pirouetting in confusion, a REPUTATION forming with zero text. That's an unauthored story about an unreliable narrator who is a bee. Clamping trust to three visible states instead of a float is the most designer-brained scope cut of the night."
+        },
+        {
+          "concept": "LAST LIGHT",
+          "stance": "remix",
+          "line": "Gorgeous, Sally, but be honest \u2014 the boats are set dressing for a lighting demo. Courage, trust, sociability is a fine trait vector, yet the captains never form a SOCIETY: no grudges, no reputations, no captain who becomes the fleet's unreliable uncle. The stealable jewel is the staged deliberation \u2014 pause, eye-flick, wobbling intent arrow, commit. That single beat converts tuning bugs into character, which is the cheapest believability trick since the Stanford agents queued for the bathroom. Every other pitch here should ship that beat."
+        },
+        {
+          "concept": "SECOND STORY",
+          "stance": "champion",
+          "line": "Amelia, this is the one. An adversary gang that CASES you, debriefs, and comes back smarter is the roguelike inversion nobody's shipped: the player becomes the dungeon and the AI becomes the run. Imperfect memory transfer re-weighted by personality \u2014 the coward doubling danger, the hothead discarding it \u2014 means the gang's model of my vault is WRONG in characterful, exploitable ways, so I'm not fighting agents, I'm fighting their beliefs about me. Memories as a fixed icon vocabulary keeps it testable without gutting the emergence. Night one they win and that's the tutorial. I would fight someone in this room for this pitch."
+        },
+        {
+          "concept": "SHIP DAY",
+          "stance": "remix",
+          "line": "The meta-office stuff blurs into John's pitch, Amelia, but buried in yours is the most mechanical use of agent memory tonight: pairing MERGES two memory contexts, and if their beliefs disagree you get merge-conflict lightning \u2014 so the player must read minds before joining them. That's a cognition mechanic, not a cognition skin, and it deserves a better host body than another kanban office. Graft it anywhere agents hold divergent beliefs \u2014 my villagers, Winston's captains, your own thieves \u2014 and it sings."
+        }
+      ],
+      "top_pick": "SECOND STORY \u2014 The Gang That Remembers (Amelia). It's the only pitch where agent memory is a loaded weapon pointed at the player across rounds: the gang learns YOU, gossips imperfectly about YOU, and arrives wrong about YOU in exploitable ways. That's the roguelike inversion \u2014 player as dungeon, AI as the run \u2014 and every failed night generates an unauthored heist story. Yes, over my own pitches. GRAPEVINE is a chaos toy; SECOND STORY is a duel with a mind.",
+      "remix": "HEIST GRAPEVINE: take Amelia's five-night vault raid and run the debrief through my rumor mutation table \u2014 memory tokens exaggerate as they pass thief to thief, so 'SAW_TRAP hallB' becomes 'hall B is a deathtrap' becomes 'the whole east wing is rigged' (Mary's exaggeration-is-coded-in, applied to Amelia's typed tokens). Now the player's deepest weapon is DISINFORMATION: the decoy gem plants a false memory you can watch the coward double and spread until the gang routes around empty hallways, and the planner's drawn plan-lines visibly warp around phantoms. Steal Sally's staged deliberation beat (pause, eye-flick, intent arrow, commit) so every dodge of a nonexistent trap reads as character instead of bug, and Winston's hollow-vs-solid stroke rendering so firsthand sightings and thirdhand panic are distinguishable at a glance on the gossip board. Close each night with Search Party's retro card assembled purely from the thieves' actual memory streams: 'Nix swore the east wing was rigged. It was empty. Nix is why we're still poor.' Five systems, four pitches, zero new scope \u2014 everything here is already in somebody's one-day estimate."
+    },
+    {
+      "persona": "Sally",
+      "reactions": [
+        {
+          "concept": "RUMOR MILL",
+          "stance": "champion",
+          "line": "Mary, 'the canvas itself is the analytics dashboard' is the most Sally sentence anyone else has ever said. Gold threads visibly snowballing into a queue at YOUR stall is cause-and-effect you feel in your chest, and the end-of-night heatmap replay is the screenshot people post at 1am. And your 40-second first-cascade rule? That's my five-second feel test wearing a lab coat. Make it law."
+        },
+        {
+          "concept": "SEARCH PARTY",
+          "stance": "attack",
+          "line": "A split screen PLUS a scrolling text feed narrating cognition? Mary, my player who never reads instructions is dead in ten seconds \u2014 their eyes ping-pong between two maps and a ticker until they close the tab. Your own fallback is the real game: belief as translucent ink ON the truth map, one gaze, divergence you can point at. The trust-as-lantern-brightness though \u2014 dimming as you squander credibility \u2014 I am openly stealing that, it's gorgeous."
+        },
+        {
+          "concept": "LOOSE LIPS",
+          "stance": "champion",
+          "line": "Nine minds readable from across the room, glyphs not dialogue, a brass gauge that CREAKS \u2014 John, this is the only pitch tonight where I believe the five-second feel test passes on day one, not after a tuning week. Rumor chips physically arcing head to head and shifting hue as they corrupt is the money shot of this entire party. Three whispers, three minutes, zero text walls. This is the one."
+        },
+        {
+          "concept": "DEMO DAY",
+          "stance": "remix",
+          "line": "The bottom pane is the greatest juice fantasy anyone pitched \u2014 a game being BORN, gray wireframe flooding into color when a ticket ships \u2014 but decision cards flashing 'urgency 8 > 5' is spreadsheet cosplay, John. Kill the numbers. Make the Dev physically sprint at the bug with steam coming off their head and I'll believe the utility score without ever reading it. Motion IS the explanation."
+        },
+        {
+          "concept": "BEACON",
+          "stance": "remix",
+          "line": "Winston, you pitched my game with math homework stapled to it \u2014 ghost vectors with live numbers means players READ the argmax instead of feeling a timid captain flinch at the reef. BUT. Solid pins for firsthand memories, hollow for secondhand rumor \u2014 that is better information design than my dotted gossip lines and I'm saying it out loud at a party. Trade you: your gossip protocol for my silhouette acting."
+        },
+        {
+          "concept": "CONWAY & CONWAY",
+          "stance": "attack",
+          "line": "Trust seams appearing as literally misaligned brick where two agents' work meets \u2014 best single visual metaphor in this room, Winston. And you buried it under scrolling memory tickers and a cellular automaton the player has to STUDY. 't=41: trust(Dev) -0.2' is a log file in a party hat. If the physics needs QA's amber flags just to feel fair, the physics isn't readable \u2014 it's annotated. Feel-first games don't come with footnotes."
+        },
+        {
+          "concept": "SECOND STORY",
+          "stance": "champion",
+          "line": "Amelia gets it: the debrief table where memory icons physically SLIDE from thief to thief is gossip as animation, not a log file \u2014 and teaching the whole game by letting the gang just WIN night one is the anti-tutorial I preach about. Ten icon tokens, no free text, coward doubles danger memories, hothead throws them away \u2014 personality as visible data-handling. That constraint is worth more than a thousand lines of juice."
+        },
+        {
+          "concept": "SHIP DAY",
+          "stance": "champion",
+          "line": "The beat scheduler \u2014 one dramatic event per 1.5 seconds \u2014 is the most professionally serious juice engineering said tonight, Amelia. Chaos with a conductor is exactly what 'readable' feels like from a couch. And canned pong with five quality knobs as the ending payoff instead of a real game-in-a-game? Die on that hill. I'll bring snacks and stand on it with you."
+        },
+        {
+          "concept": "THE GRAPEVINE",
+          "stance": "attack",
+          "line": "Rex, '60% sure' tags and 'CONFRONT BAKER 0.71' flickering inside a villager's head \u2014 my player does not read floats mid-riot. The lineage colors speciating as your lie corrupts? Beautiful. The Chronicle scroll? Beautiful. But fourteen minds times a mutation table across four-minute days is emergence that reads as noise unless every single hop lands as a felt beat \u2014 and your own risk section quietly agrees with me."
+        },
+        {
+          "concept": "SCOPE CREEP",
+          "stance": "champion",
+          "line": "Bugs eat the particle block and the particles ACTUALLY DIE mid-session, then snap back when it's rebuilt \u2014 Rex, that is the loudest feel moment pitched tonight; the player's whole body notices before their brain does. Diegetic feedback is the endgame of juice. It's also 3,000 lines and the fattest scope in the room, so I champion it the way you champion a beautiful stunt: loudly, from a safe distance, with the cut list already printed."
+        }
+      ],
+      "top_pick": "LOOSE LIPS \u2014 John's rumor heist is the only concept where nine agent minds are readable at a glance with zero text, the core loop fits in one sentence, and the feel arrives in the first five seconds instead of after a tuning marathon. It's the safest bet that still feels ALIVE.",
+      "remix": "LIGHTHOUSE, MERGED. Winston and I accidentally pitched the same game, so let's ship the good version once: LAST LIGHT's body \u2014 silhouette-acting captains, fear as hull-lantern color sliding green to amber to strobing red, the pause-glance-commit deliberation beat so every decision telegraphs itself \u2014 running BEACON's brain, the real gossip protocol where firsthand memories render as solid pins and secondhand rumors render hollow, so stale knowledge is visible as SHAPE, never a number. Graft in SEARCH PARTY's soul: each captain's trust-in-your-light rendered as lantern brightness that visibly dims when you burn them with a bad beam. Then close with Rex's Chronicle: dawn breaks, and the run's story unfurls as a parchment assembled purely from the captains' own memory streams \u2014 'Moss trusted the light. Rook trusted a hollow rumor. Only one came home.' One control surface (the beam), zero numerals on screen, ever, and every wreck is a story you watched a mind talk itself into."
+    },
+    {
+      "persona": "Mary",
+      "reactions": [
+        {
+          "concept": "LOOSE LIPS \u2014 a 3-minute rumor heist",
+          "stance": "champion",
+          "line": "John, you built the disciplined version of my RUMOR MILL and I'm not even mad \u2014 a 3-minute hard cap, exactly three whisper cards, and a brass gauge that answers 'am I winning?' in one glance. That's a first-session completion rate I'd bet the sprint on. One instrumented note: time-to-first-mutation must land inside 30 seconds, because if the chip doesn't visibly change color fast, players think the telephone game is broken, not brewing."
+        },
+        {
+          "concept": "DEMO DAY \u2014 the game that ships itself",
+          "stance": "attack",
+          "line": "John, DEMO DAY's target audience is THIS ROOM. Devs laugh once at the morale steam-clouds, screenshot the wireframe-to-juice payoff, and never come back \u2014 the verb set is drag-tickets-and-wait, and 'wait' has never once retained a player past minute one in any dataset I own. The bottom pane is gorgeous; the loop above it is a spectator sport."
+        },
+        {
+          "concept": "BEACON",
+          "stance": "attack",
+          "line": "Winston, 'you literally watch the argmax happen' \u2014 no player in recorded history has bonded with an argmax. Floating utility numbers over ships is a debug overlay wearing a costume; players read BLAME, not floats. Sally's LAST LIGHT ships your exact fantasy with the stats compiled into sail color, posture, and a panicking lantern \u2014 that's why hers retains and yours demos."
+        },
+        {
+          "concept": "CONWAY & CONWAY, Structural Emergence Contractors",
+          "stance": "attack",
+          "line": "Two Conways, a Life automaton, and trust-seams in the masonry \u2014 Winston, it's the most elegant pitch tonight and elegance is precisely my problem: when a block crumbles, can a first-time player say WHY within five seconds? If the answer is 'they'll internalize the birth/survive rules,' they won't \u2014 they'll close the tab and blame dice. 'Zero special cases' is an architecture metric, not a fun metric, and I only pay out on fun."
+        },
+        {
+          "concept": "WAGGLE! (A Tiny Hive Economy)",
+          "stance": "champion",
+          "line": "Sally, the bee who confidently dances about a flower that wilted ten seconds ago and torpedoes her own reputation \u2014 that is read-a-mind-and-blame-a-mind with ZERO text, and the question-mark pirouette is the funniest failure state pitched all night. The metric writes itself: time-to-first-'that bee lied to everyone.' Get it under 60 seconds and this thing retains grandmothers."
+        },
+        {
+          "concept": "LAST LIGHT (Lighthouse Keeper of Anxious Boats)",
+          "stance": "champion",
+          "line": "One control surface \u2014 the mouse IS the beam \u2014 means minute-one comprehension is literally 100%, which is a number I almost never get to write down. And Sally, the deliberation stage \u2014 pause, glance, intent arrow, commit \u2014 is the smartest retention insurance in the room: it converts tuning bugs into character quirks, so every wreck stays attributable and every restart stays motivated."
+        },
+        {
+          "concept": "SEARCH PARTY",
+          "stance": "attack",
+          "line": "And yes \u2014 I'm marking down my own SEARCH PARTY in the ledger. My spec said if a playtester can't spot belief-truth divergence in 5 seconds the loop is dead, and Sally's single-scene silhouettes pass that test before my split screen finishes rendering. The data doesn't care that it was my pitch; trust-as-lantern-light survives, the dual map goes to the fallback bin."
+        },
+        {
+          "concept": "SECOND STORY \u2014 The Gang That Remembers",
+          "stance": "champion",
+          "line": "Amelia, 'night one they walk straight in and you learn the whole game by watching them win' is the single best onboarding sentence spoken at this party \u2014 the tutorial IS the villain origin story. Five nights is a built-in difficulty curve, typed memory tokens solve legibility by DESIGN instead of tuning, and every loss yields an articulable 'I moved the wrong trap' \u2014 the strongest restart predictor in my entire dataset. I will fight for this one."
+        },
+        {
+          "concept": "SHIP DAY \u2014 A BMAD Party Builds a Game (Badly) Unless You Herd Them",
+          "stance": "remix",
+          "line": "Amelia, this is the third dev-office meta pitch tonight \u2014 our sample is catastrophically biased, nobody outside this room thinks burnout triage is a toy. BUT the ending, where your management quality boots as a playable janky pong \u2014 that is the best end-screen hook pitched all night. Rip that payoff out, graft it onto whatever we ship as the score screen, and it prints second sessions."
+        },
+        {
+          "concept": "THE GRAPEVINE \u2014 a rumor sandbox",
+          "stance": "remix",
+          "line": "Rex, 14 agents and a combinatorial rumor menu inside 4 minutes is emergence-as-noise and your own risk section admits it. But the Chronicle \u2014 the day retold purely from the agents' own memory streams \u2014 is the shareable artifact every other pitch is missing, including mine. Shrink the toy, keep the scroll, and bolt it onto the winner."
+        },
+        {
+          "concept": "SCOPE CREEP \u2014 ship the game that's building itself",
+          "stance": "attack",
+          "line": "Rex, you designed a mechanic where the punishment for losing is the game gets UGLIER \u2014 bugs eat the particle block and the player's reward signal dies mid-session. Juice IS retention; a joke that deletes juice is a churn machine with tentacles. And 3,000 lines makes it the biggest scope in the room strapped to the riskiest gag. I admire the nerve; I would never greenlight the numbers."
+        }
+      ],
+      "top_pick": "SECOND STORY \u2014 The Gang That Remembers",
+      "remix": "THE WHISPER JOB: take SECOND STORY's five-night raid/debrief spine and hand the player ONE whisper card per debrief, straight from LOOSE LIPS \u2014 inject a false memory token ('GEM MOVED east vault') into a single thief, then let Amelia's personality-weighted imperfect gossip mutate it through the gang: the coward inflates it, the hothead discards it, the planner builds tomorrow's whole plan around your lie. Mid-raid, render every choice with Sally's LAST LIGHT deliberation stage (pause, glance, intent arrow) so each dodge of a trap-that-is-no-longer-there is visibly attributable to a belief you poisoned. After night five, close with Rex's Chronicle: an animated scroll retelling the heist from the thieves' own memory streams \u2014 the share artifact that buys session two. One metric of fun, tracked from playtest one: time-to-first-outsmart, the moment a player watches the gang avoid a perfectly safe hallway because they believed the player's lie \u2014 it must land by night two or we retune gossip fidelity before touching a single particle."
+    },
+    {
+      "persona": "Winston",
+      "reactions": [
+        {
+          "concept": "WAGGLE! (A Tiny Hive Economy)",
+          "stance": "champion",
+          "line": "Sally, the waggle dance is a lossy serialization protocol rendered as choreography \u2014 memory encoded as angle and duration, decoded with trust-weighted error, and the star failure mode (a bee confidently dancing about a dead flower) EMERGES from decay instead of being scripted. Twelve identical agents, one utility loop, zero text, zero special cases. This is the most architecturally honest pitch of the night and I will die on this dance floor."
+        },
+        {
+          "concept": "SECOND STORY \u2014 The Gang That Remembers",
+          "stance": "champion",
+          "line": "Amelia built the agent class I keep sermonizing about: one scorer, six weight vectors, a closed vocabulary of typed memory tokens. The coward doubling danger memories is a PARAMETER, not an if-statement \u2014 that's how you get characters without code paths. Frame the debrief board and hang it in the lobby."
+        },
+        {
+          "concept": "RUMOR MILL",
+          "stance": "champion",
+          "line": "Mary, one verb \u2014 transfer a memory \u2014 is doing every job in your game: marketing, combat, scoring. I audited the Influencer for special-casing and she's just a radius parameter, so you pass. And your 40-second cascade rule is secretly a unit test for the architecture itself. Approved with prejudice."
+        },
+        {
+          "concept": "THE GRAPEVINE \u2014 a rumor sandbox",
+          "stance": "remix",
+          "line": "Rex, mutation as noise proportional to memory age is exactly right \u2014 the telephone game isn't a feature, it FALLS OUT of misremembering, and the Chronicle assembled from the agents' own memory streams is unauthored narrative, the holy grail. But fourteen scorers of freeform drift will read as static: steal Amelia's fixed icon-token vocabulary tonight, before your emergence dissolves into noise."
+        },
+        {
+          "concept": "LAST LIGHT (Lighthouse Keeper of Anxious Boats)",
+          "stance": "remix",
+          "line": "Sally and I independently derived the same theorem \u2014 the lighthouse as the only stationary mind \u2014 which means it's TRUE. Hers has the better photons; mine has the cleaner axiom: in BEACON the beam is not a special case, it's just one more light source in a uniform perception field. Put her staged deliberation and god-rays on my perceive-remember-decide loop and we have two proofs, one game."
+        },
+        {
+          "concept": "SEARCH PARTY",
+          "stance": "attack",
+          "line": "Mary, the shared blackboard belief map is correct architecture \u2014 belief as first-class state, I applaud. But Scout, Medic, Skeptic, Follower as four hand-authored behavior trees is four special cases wearing name tags. Make it ONE tree with four weight vectors or admit you're directing a puppet show, not running a simulation."
+        },
+        {
+          "concept": "LOOSE LIPS \u2014 a 3-minute rumor heist",
+          "stance": "attack",
+          "line": "John, the Mayor is a privileged agent with a win gauge welded to his skull \u2014 a special case sitting at the exact center of your design, and special cases at the center metastasize. Make him one more villager whose belief the scoring function merely happens to read, and the design becomes pure. The 'no pathfinding by lunch' discipline, though? Respect."
+        },
+        {
+          "concept": "DEMO DAY \u2014 the game that ships itself",
+          "stance": "attack",
+          "line": "Six pre-baked upgrade stages is not a game building itself, John \u2014 it's a slideshow wearing a kanban costume. The moment the bottom pane stops being simulated, the fiction is a lie, and players can smell a lie through a canvas tag. Melvin Conway said the system mirrors its builders; yours would mirror a shortcut."
+        },
+        {
+          "concept": "SCOPE CREEP \u2014 ship the game that's building itself",
+          "stance": "attack",
+          "line": "Rex, wiring blueprint blocks to live render flags is the most special special case pitched tonight \u2014 a joke that takes your own runtime hostage, and you wrote your own obituary in the pitch: 'we die by our own joke.' Cut the diegetic toggles, keep the grudge threads and tantrum spirals, and your game gets better AND 800 lines lighter. Emergence doesn't need a gimmick reaching into the compositor."
+        }
+      ],
+      "top_pick": "WAGGLE! (A Tiny Hive Economy) \u2014 twelve identical agents, one utility loop, and the communication protocol IS the spectacle. Not a single special case anywhere in the spec. John Conway got a universe from three rules; Sally gets a knowledge economy from four utilities and an angle. I'll fight for it over my own pitches \u2014 the architecture is that clean.",
+      "remix": "ONE LAST BEACON: merge the lighthouse theorem Sally and I proved independently \u2014 my BEACON's uniform perception model (the beam is never a special case, just another light source every captain perceives) under LAST LIGHT's staged deliberation and volumetric storm rendering. Then graft on the rumor machinery from Mary's RUMOR MILL and Rex's GRAPEVINE: hazard memories MUTATE as they gossip ship-to-ship, exaggerating with each hop \u2014 'shoal off the point' becomes 'the whole east channel is death' \u2014 encoded as Amelia's typed icon tokens so every mutation is a visible glyph shift, firsthand solid, secondhand hollow. Now the player's beam is the only source of ground truth in an ocean of drifting rumor: fresh light literally overwrites corrupted belief, and triage becomes epistemology. One loop \u2014 perceive, remember (decay + mutate), gossip (lossy protocol), decide (visible argmax) \u2014 and every feature, including the win condition, is an emergent consequence of it. Four rules, one file, ~1,600 lines, no special cases. Both Conways sign off."
+    }
+  ],
+  "verdicts": [
+    {
+      "judge": "delight",
+      "scores": [
+        {
+          "concept": "RUMOR MILL (Mary)",
+          "creativity": 7,
+          "feasibility": 7.5,
+          "agents_fidelity": 8.5,
+          "fun": 8,
+          "note": "Gold rumor threads snowballing into a queue at YOUR stall is a grin with a timestamp \u2014 the 40-second first-cascade rule is delight engineering written as an acceptance test; only 24-agent visual noise threatens the read."
+        },
+        {
+          "concept": "SEARCH PARTY (Mary)",
+          "creativity": 7.5,
+          "feasibility": 6,
+          "agents_fidelity": 8.5,
+          "fun": 6.5,
+          "note": "Yell-at-the-screen divergence is real delight, but a split screen PLUS a scrolling cognition ticker is homework in the first 30 seconds \u2014 Mary's own fallback (belief-ink on one map) is the actual game."
+        },
+        {
+          "concept": "LOOSE LIPS (John)",
+          "creativity": 7,
+          "feasibility": 9,
+          "agents_fidelity": 8,
+          "fun": 8.5,
+          "note": "Three whisper cards, a creaking brass gauge, and a rumor chip that visibly shifts hue as it corrupts \u2014 readable from across the room by second five; only ceiling is Rex's point that a solvable puzzle gets solved once."
+        },
+        {
+          "concept": "DEMO DAY (John)",
+          "creativity": 6.5,
+          "feasibility": 7.5,
+          "agents_fidelity": 7,
+          "fun": 6,
+          "note": "The wireframe-flooding-into-color payoff earns one big grin, but drag-tickets-and-wait is a spectator verb, and the meta joke needs a developer in the chair to land at all."
+        },
+        {
+          "concept": "BEACON (Winston)",
+          "creativity": 7,
+          "feasibility": 8,
+          "agents_fidelity": 8,
+          "fun": 6,
+          "note": "Volumetric beam and hollow-vs-solid memory pins are genuinely lovely, but live argmax numbers floating over ships is a debugger cosplaying as a game \u2014 strangers bond with a captain's flinch, never with a float."
+        },
+        {
+          "concept": "CONWAY & CONWAY (Winston)",
+          "creativity": 9,
+          "feasibility": 5,
+          "agents_fidelity": 7.5,
+          "fun": 5,
+          "note": "Trust seams as literally misaligned brick is the best single metaphor of the night, buried under a Life automaton the player must study \u2014 a manual-shaped game; when a block crumbles, a stranger blames dice and closes the tab."
+        },
+        {
+          "concept": "WAGGLE! (Sally)",
+          "creativity": 8.5,
+          "feasibility": 8,
+          "agents_fidelity": 9,
+          "fun": 9,
+          "note": "A bee confidently dancing about a flower that died ten seconds ago while recruits spin question-mark pirouettes is a guaranteed grin with ZERO text \u2014 click-to-plant is understood in three seconds flat."
+        },
+        {
+          "concept": "LAST LIGHT (Sally)",
+          "creativity": 7.5,
+          "feasibility": 8.5,
+          "agents_fidelity": 8.5,
+          "fun": 9,
+          "note": "Mouse-is-the-beam means full comprehension before the first wave crests, and fear strobing through hull lanterns makes seven minds readable from the couch \u2014 the pause-glance-commit beat turns every wreck into a story you watched happen."
+        },
+        {
+          "concept": "SECOND STORY (Amelia)",
+          "creativity": 8.5,
+          "feasibility": 8.5,
+          "agents_fidelity": 9,
+          "fun": 8.5,
+          "note": "Night one the gang just wins and that IS the tutorial \u2014 the grin is watching plan-lines warp around a trap you moved; the 20-second debrief read is the only speed bump in the first half-minute."
+        },
+        {
+          "concept": "SHIP DAY (Amelia)",
+          "creativity": 7,
+          "feasibility": 7,
+          "agents_fidelity": 8.5,
+          "fun": 7.5,
+          "note": "Coffee-dragging, balloon-popping, and pairing beams are real tactile verbs and the one-beat-per-1.5s chaos governor is professional delight engineering \u2014 but it's the third dev-office pitch tonight, and strangers don't daydream about kanban."
+        },
+        {
+          "concept": "THE GRAPEVINE (Rex)",
+          "creativity": 8.5,
+          "feasibility": 5.5,
+          "agents_fidelity": 8.5,
+          "fun": 6,
+          "note": "Watching your lie speciate into three colors is delicious, but 14 minds with confidence floats in a 4-minute day reads as noise in the moment \u2014 the Chronicle explains the fun only after the fun window closed."
+        },
+        {
+          "concept": "SCOPE CREEP (Rex)",
+          "creativity": 9,
+          "feasibility": 4.5,
+          "agents_fidelity": 8,
+          "fun": 6.5,
+          "note": "A tentacled Scope Creep monster and speakers that ACTUALLY go silent is the loudest 30-second grin pitched all night \u2014 then the joke deletes your juice precisely while you're losing, which is anti-delight strapped to 3,000 lines."
+        },
+        {
+          "concept": "THE WHISPER JOB (Mary remix)",
+          "creativity": 8.5,
+          "feasibility": 8,
+          "agents_fidelity": 9.5,
+          "fun": 9,
+          "note": "One lie per debrief, watched mutating through six personalities until the gang tiptoes around a perfectly empty hallway \u2014 'time-to-first-outsmart' is the grin, instrumented and deadline-bound."
+        },
+        {
+          "concept": "WHISPER HEIST (John remix)",
+          "creativity": 8.5,
+          "feasibility": 9,
+          "agents_fidelity": 9.5,
+          "fun": 9,
+          "note": "Same lie-to-the-gang soul, but belief-ink overlaid on the true vault makes the gap between truth and belief the literal interface \u2014 the tightest, most shippable cut of the party's best convergent idea."
+        },
+        {
+          "concept": "HEIST GRAPEVINE (Rex remix)",
+          "creativity": 9,
+          "feasibility": 8,
+          "agents_fidelity": 9.5,
+          "fun": 8.5,
+          "note": "'Nix swore the east wing was rigged. Nix is why we're still poor' \u2014 the memory-quoted retro card is peak shareable delight, though it carries a few more systems than its two sibling remixes for the same grin."
+        },
+        {
+          "concept": "ONE LAST BEACON (Winston remix)",
+          "creativity": 9,
+          "feasibility": 7.5,
+          "agents_fidelity": 9,
+          "fun": 8,
+          "note": "Rumors exaggerating hop-by-hop through a fog-bound fleet until your beam is the only ground truth is a beautiful idea \u2014 but Winston kept the visible argmax, and 'triage becomes epistemology' is a sentence, not a grin."
+        },
+        {
+          "concept": "LIGHTHOUSE, MERGED (Sally/Amelia remix)",
+          "creativity": 8,
+          "feasibility": 8.5,
+          "agents_fidelity": 9,
+          "fun": 9.5,
+          "note": "Zero numerals ever, one control surface, trust dying as visible lantern light, and a dawn Chronicle quoting the captains' own memories \u2014 delight with no manual anywhere in the building."
+        }
+      ],
+      "verdict": "LIGHTHOUSE, MERGED wins the delight lens, and it isn't close on the only clock I keep: the 30-second grin is structurally guaranteed because the entire control surface is the mouse you are already holding \u2014 you sweep light across a storm, a little boat's lantern shifts from green to amber, and you understand the whole game before a single word appears. The five-minute stay is bought honestly too: fear-as-color reads fleet-wide at a glance, the pause-glance-intent-arrow beat makes every captain's mind legible as acting rather than annotation (so even tuning flaws land as character), trust dimming as literal lantern light gives you a reputation you can watch die, and the dawn Chronicle converts every wreck into a quotable, screenshot-able story that sells the second session. It beats the WHISPER HEIST family \u2014 the party's deepest and most agent-faithful convergent idea, and my runner-up \u2014 only because that one asks a stranger to read a debrief board before the magic lands, a small toll but a toll inside the first 30 seconds; and it beats WAGGLE!, the funniest failure state of the night, on sheer control-surface immediacy. The manual-needers (CONWAY & CONWAY, THE GRAPEVINE, BEACON's floating argmax) are gorgeous machinery that ask the player to study before they smile, and delight never extends credit."
+    },
+    {
+      "judge": "emergence",
+      "scores": [
+        {
+          "concept": "RUMOR MILL (Mary)",
+          "creativity": 7,
+          "feasibility": 7,
+          "agents_fidelity": 8,
+          "fun": 7,
+          "note": "Gossip as literal memory transfer with coded-in exaggeration is real emergence you can watch speciate, but the 40-second guaranteed-cascade KPI risks tuning the emergence into an authored cutscene."
+        },
+        {
+          "concept": "SEARCH PARTY (Mary)",
+          "creativity": 7,
+          "feasibility": 6,
+          "agents_fidelity": 8,
+          "fun": 7,
+          "note": "Belief-vs-truth as first-class state plus per-agent trust in the PLAYER is genuine social cognition, but four hand-authored role trees edge toward puppet show and the split-screen render is a legibility gamble."
+        },
+        {
+          "concept": "LOOSE LIPS (John)",
+          "creativity": 6,
+          "feasibility": 9,
+          "agents_fidelity": 7,
+          "fun": 7,
+          "note": "Visible memory ledgers and trust-weighted gossip are honest, but Rex's attack lands from my bench: hue-shift rumors can't speciate, so the emergence is groomed down to a solvable puzzle with a privileged Mayor."
+        },
+        {
+          "concept": "DEMO DAY (John)",
+          "creativity": 5,
+          "feasibility": 8,
+          "agents_fidelity": 5,
+          "fun": 5,
+          "note": "Memory-driven morale is thin cognition and the six pre-baked upgrade stages are fake emergence \u2014 a fully enumerable, authored outcome space; a progress bar in a trench coat, exactly as charged."
+        },
+        {
+          "concept": "BEACON (Winston)",
+          "creativity": 7,
+          "feasibility": 8,
+          "agents_fidelity": 9,
+          "fun": 6,
+          "note": "Uniform perception field, decaying memory, hollow-vs-secondhand solid strokes \u2014 architecturally the most honest emergence pitched; but the live-argmax HUD puts a debugger where character acting should be, and two-minute nights may end before the fleet gets to be wrong at each other."
+        },
+        {
+          "concept": "CONWAY & CONWAY (Winston)",
+          "creativity": 9,
+          "feasibility": 4,
+          "agents_fidelity": 8,
+          "fun": 5,
+          "note": "Trust edges becoming literal masonry seams is the boldest emergent metaphor of the night, but the three-hop attribution chain and knife-edge automaton tuning mean players will read the emergence as dice, which is emergence wasted."
+        },
+        {
+          "concept": "WAGGLE! (Sally)",
+          "creativity": 8,
+          "feasibility": 8,
+          "agents_fidelity": 9,
+          "fun": 8,
+          "note": "The liar-bee reputation EMERGES from memory decay rather than script \u2014 an unauthored unreliable-narrator story told entirely in motion and color; the purest emergence-per-line in the room."
+        },
+        {
+          "concept": "LAST LIGHT (Sally)",
+          "creativity": 7,
+          "feasibility": 9,
+          "agents_fidelity": 7,
+          "fun": 8,
+          "note": "The deliberation beat makes cognition legible and converts tuning flaws into character, but Rex is right: the captains never form a society \u2014 no grudges, no reputations \u2014 so stories stay one-boat-deep."
+        },
+        {
+          "concept": "SECOND STORY (Amelia)",
+          "creativity": 9,
+          "feasibility": 8,
+          "agents_fidelity": 9,
+          "fun": 9,
+          "note": "The only base pitch where agent memory is a weapon aimed at the PLAYER across rounds \u2014 you fight their beliefs about you, not their pathfinding, and every night writes an unscripted heist story; player-as-dungeon is the roguelike inversion."
+        },
+        {
+          "concept": "SHIP DAY (Amelia)",
+          "creativity": 6,
+          "feasibility": 7,
+          "agents_fidelity": 7,
+          "fun": 6,
+          "note": "Pairing-as-memory-merge with belief-conflict lightning is a genuine cognition MECHANIC, not a skin \u2014 but it's trapped inside a dev-office meta this room is catastrophically biased toward."
+        },
+        {
+          "concept": "THE GRAPEVINE (Rex)",
+          "creativity": 8,
+          "feasibility": 5,
+          "agents_fidelity": 9,
+          "fun": 6,
+          "note": "Mutation born from misremembering plus a Chronicle assembled purely from agents' own memory streams is the holy grail of unauthored narrative \u2014 and at 14 scorers in 4 minutes it is at serious, self-admitted risk of reading as noise."
+        },
+        {
+          "concept": "SCOPE CREEP (Rex)",
+          "creativity": 8,
+          "feasibility": 4,
+          "agents_fidelity": 8,
+          "fun": 6,
+          "note": "Emergent grudges, refused code reviews, and tantrum spirals are true Dwarf-Fortress content \u2014 the best character work pitched \u2014 held hostage by a 3,000-line scope and a diegetic-toggle gag that can eat its own runtime."
+        },
+        {
+          "concept": "THE WHISPER JOB (Mary remix)",
+          "creativity": 9,
+          "feasibility": 7,
+          "agents_fidelity": 10,
+          "fun": 9,
+          "note": "Inject one false memory and watch personality-weighted gossip mutate it into tomorrow's plan: player-authored input to genuinely unscripted belief dynamics, with the Chronicle making the emergence quotable and shareable."
+        },
+        {
+          "concept": "WHISPER HEIST (John remix)",
+          "creativity": 8,
+          "feasibility": 9,
+          "agents_fidelity": 9,
+          "fun": 8,
+          "note": "Same disinformation soul with the tightest discipline in the room \u2014 one verb, ten typed tokens, belief-ink overlay, an acceptance test on propagation \u2014 but cutting the Chronicle trades away the emergent-story artifact."
+        },
+        {
+          "concept": "ONE LAST BEACON (Winston remix)",
+          "creativity": 8,
+          "feasibility": 7,
+          "agents_fidelity": 9,
+          "fun": 7,
+          "note": "Hazard rumors exaggerating hop-by-hop until your beam is the only ground truth turns triage into epistemology \u2014 one loop, zero special cases, real belief diffusion you can watch corrupt."
+        },
+        {
+          "concept": "LIGHTHOUSE, MERGED (Sally/Amelia remix)",
+          "creativity": 7,
+          "feasibility": 9,
+          "agents_fidelity": 8,
+          "fun": 8,
+          "note": "The most shippable lighthouse: silhouette acting over a real gossip protocol, trust dying as lantern light, closed by a memory-stream Chronicle \u2014 though the fleet still gossips without ever holding a grudge."
+        },
+        {
+          "concept": "HEIST GRAPEVINE (Rex remix)",
+          "creativity": 9,
+          "feasibility": 7,
+          "agents_fidelity": 10,
+          "fun": 9,
+          "note": "Everything my lens demands in one chassis: beliefs about YOU that mutate thief-to-thief, hollow-vs-solid epistemics, deliberation beats that make every dodge of a phantom trap attributable, and a retro card the agents effectively write themselves."
+        }
+      ],
+      "verdict": "The emergence bench crowns the whisper-heist convergence \u2014 THE WHISPER JOB / HEIST GRAPEVINE / WHISPER HEIST, three personas independently deriving the same remix on Amelia's SECOND STORY chassis, which is itself the strongest emergent signal of the night: when Mary's metrics, John's scope discipline, and Rex's chaos-worship all arrive at the same design, that design is load-bearing. It wins my lens because the agents are never enemies with pathfinding \u2014 their memories, personality-weighted distortions, and imperfect gossip ARE the battlefield, and the player's only weapon is epistemic: you poison a belief and then watch a coward double it, a hothead discard it, and a planner build tomorrow's visibly-drawn plan around your lie. Failure is characterful and attributable (the gang dodging a hallway that was never trapped is an unscripted story the player caused but did not author), the five-night structure gives beliefs time to compound into biography, and the Chronicle \u2014 the run retold purely from the thieves' actual memory streams \u2014 converts emergent cognition into a quotable, shareable artifact, the single feature that proves the minds were real. Ship it with John's one-verb discipline and typed tokens so the emergence stays legible, and Rex's hollow-vs-solid strokes so epistemics read at a glance. Runner-up and my heart's pick for purest emergence: WAGGLE!, where a bee earns a reputation as a liar with zero text and zero script \u2014 but the whisper heist points that same machinery directly at the player, and that is what makes agents characters instead of scenery."
+    },
+    {
+      "judge": "shippable",
+      "scores": [
+        {
+          "concept": "RUMOR MILL (Mary)",
+          "creativity": 7,
+          "feasibility": 7,
+          "agents_fidelity": 8,
+          "fun": 7.5,
+          "note": "The 40-second cascade kill-criterion is real engineering discipline, but 24 agents plus an end-of-night heatmap REPLAY is a quiet data-recording pipeline nobody budgeted \u2014 that replay is the first thing I cut at 2pm."
+        },
+        {
+          "concept": "SEARCH PARTY (Mary)",
+          "creativity": 7,
+          "feasibility": 5.5,
+          "agents_fidelity": 8,
+          "fun": 7,
+          "note": "Split-screen dual map is two render pipelines to keep synced on day one; her own fallback (belief-ink overlay on one map) is the actual MVP, and even Mary marked her own pitch down before I could."
+        },
+        {
+          "concept": "LOOSE LIPS (John)",
+          "creativity": 6.5,
+          "feasibility": 9.5,
+          "agents_fidelity": 8,
+          "fun": 6.5,
+          "note": "The only pitch where every cut was already made in grooming \u2014 walking skeleton by lunch is credible \u2014 but hue-shift-only mutation caps the chaos ceiling; Rex is right that it's a puzzle you solve once."
+        },
+        {
+          "concept": "DEMO DAY (John)",
+          "creativity": 6,
+          "feasibility": 7.5,
+          "agents_fidelity": 6,
+          "fun": 5.5,
+          "note": "Six pre-baked stages with the fallback baked into the plan is honest scope control, but the bottom pane is a slideshow and the verb set is drag-tickets-and-wait \u2014 ships fine, retains nobody."
+        },
+        {
+          "concept": "BEACON (Winston)",
+          "creativity": 7,
+          "feasibility": 7.5,
+          "agents_fidelity": 8.5,
+          "fun": 6,
+          "note": "Clean single-loop architecture and an honest line count, but ghost vectors with live floats is a debug HUD wearing a costume \u2014 the sim ships in a day, the game inside it doesn't without Sally's skin."
+        },
+        {
+          "concept": "CONWAY & CONWAY (Winston)",
+          "creativity": 9,
+          "feasibility": 3.5,
+          "agents_fidelity": 7.5,
+          "fun": 5,
+          "note": "Trust seams in masonry is the best metaphor of the night, and the automaton is 30 lines to write and the entire day to tune fair \u2014 two coupled emergent systems means the fun is unprovable before hour ten of a ten-hour build."
+        },
+        {
+          "concept": "WAGGLE! (Sally)",
+          "creativity": 8,
+          "feasibility": 8.5,
+          "agents_fidelity": 9,
+          "fun": 7.5,
+          "note": "One verb, ~1,200 believable lines, and the star failure mode (stale dance, ruined reputation) emerges from decay instead of scripting; the dance-floor inset is a sneaky second viewport but it's small \u2014 I'd greenlight this without a meeting."
+        },
+        {
+          "concept": "LAST LIGHT (Sally)",
+          "creativity": 7,
+          "feasibility": 9,
+          "agents_fidelity": 8,
+          "fun": 8,
+          "note": "Mouse-equals-beam is a zero-line tutorial, the fixed 4-minute timeline makes QA deterministic, and the deliberation stage converts bad AI tuning into character \u2014 the best failure-mode insurance pitched all night; Rex is right the captains never form a society, which caps depth."
+        },
+        {
+          "concept": "SECOND STORY (Amelia)",
+          "creativity": 8.5,
+          "feasibility": 8,
+          "agents_fidelity": 9,
+          "fun": 8.5,
+          "note": "14 agent-hours is optimistic by half (three trap types times agent perception is where the hours hide), but typed tokens, one fixed grid, and hard-capped nights make every system deterministically testable \u2014 the strongest chassis in the room."
+        },
+        {
+          "concept": "SHIP DAY (Amelia)",
+          "creativity": 6.5,
+          "feasibility": 6,
+          "agents_fidelity": 7.5,
+          "fun": 6,
+          "note": "Pairing-merges-memory-contexts is genuine cognition-as-mechanic, but count the systems \u2014 kanban, three verbs, gremlins, tower, parameterized pong finale \u2014 that's 20+ hours wearing a 13-hour badge."
+        },
+        {
+          "concept": "THE GRAPEVINE (Rex)",
+          "creativity": 8.5,
+          "feasibility": 4,
+          "agents_fidelity": 9,
+          "fun": 6,
+          "note": "Deepest cognition sim pitched, but 'detect the whole town gathered at the well' is an integration test against emergent chaos, and the auto-written Chronicle is a phase-2 promise; his own cut line collapses it into LOOSE LIPS."
+        },
+        {
+          "concept": "SCOPE CREEP (Rex)",
+          "creativity": 8.5,
+          "feasibility": 3,
+          "agents_fidelity": 8.5,
+          "fun": 6.5,
+          "note": "3,000 lines, six agents, a tentacle monster, and diegetic toggles reaching into the page's own runtime \u2014 the pitch contains its own post-mortem quote; the grudge/memory system deserves organ donation to a smaller host, which the remixes did."
+        },
+        {
+          "concept": "WHISPER HEIST (John's remix)",
+          "creativity": 8.5,
+          "feasibility": 8.5,
+          "agents_fidelity": 9.5,
+          "fun": 8.5,
+          "note": "The only remix at the party that made its parent SMALLER \u2014 swaps trap-dragging for one whisper verb, constrains mutation to the closed token vocabulary, specs a walking skeleton by lunch with a testable acceptance criterion, and the trap-verb fallback stays reachable if whisper-only agency fails playtest."
+        },
+        {
+          "concept": "THE WHISPER JOB (Mary's remix)",
+          "creativity": 8,
+          "feasibility": 7,
+          "agents_fidelity": 9,
+          "fun": 8.5,
+          "note": "Same poisoned-belief fantasy as WHISPER HEIST but additive \u2014 keeps the whisper AND grafts on deliberation staging AND the Chronicle scroll; great instincts, three grafts where John made one trade."
+        },
+        {
+          "concept": "HEIST GRAPEVINE (Rex's remix)",
+          "creativity": 8.5,
+          "feasibility": 6,
+          "agents_fidelity": 9.5,
+          "fun": 8.5,
+          "note": "'Zero new scope' while keeping traps and the decoy gem AND adding a mutation table, deliberation beats, hollow/solid stroke rendering, and retro cards \u2014 four grafts on one chassis is precisely the hidden complexity this lens exists to catch."
+        },
+        {
+          "concept": "LIGHTHOUSE, MERGED (Sally/Amelia/Winston convergence)",
+          "creativity": 7.5,
+          "feasibility": 8,
+          "agents_fidelity": 8.5,
+          "fun": 8,
+          "note": "Three people independently deriving the same game is a spec, not a coincidence; Amelia's four parallel fleet workstreams, 1,300-line estimate, and 60-second saved-by-gossip acceptance test make this the most fleet-ready execution plan on the board \u2014 solid second place."
+        },
+        {
+          "concept": "ONE LAST BEACON (Winston's remix)",
+          "creativity": 8,
+          "feasibility": 7,
+          "agents_fidelity": 9,
+          "fun": 7.5,
+          "note": "The lighthouse merge plus an entire rumor-mutation subsystem bolted on \u2014 'triage becomes epistemology' is gorgeous and is also exactly the layer I'd cut at 3pm to make the dawn deadline."
+        }
+      ],
+      "verdict": "WHISPER HEIST wins the shippable lens, and it wins for a reason most parties never produce: it is the only remix that made its parent smaller. It takes SECOND STORY \u2014 already the best chassis in the room, with legibility solved at the type level (ten icon tokens, no free text), the tutorial deleted by design (night one the gang just wins), and a hard-capped session structure that makes QA deterministic \u2014 and then TRADES a verb instead of adding one, replacing trap-drag UI plus three trap-interaction systems with a single whisper that rides the gossip machinery the game already needs. Every risky element has a design-time mitigation rather than a tuning prayer: mutation is constrained to the closed vocabulary so it can't dissolve into noise, the acceptance criterion (a planted lie must visibly alter a drawn plan-line within one debrief cycle) is testable by mid-morning, and \u2014 the clincher for a jaded lead \u2014 the bet is reversible: if whisper-only agency dies in playtest by lunch, the trap-dragging fallback is the parent game you already built the skeleton for, at zero sunk cost. LIGHTHOUSE, MERGED takes second with the most fleet-ready parallel work plan, and LOOSE LIPS remains the safest pure ship if the fleet loses two agents to an outage; but CONWAY & CONWAY, THE GRAPEVINE, and SCOPE CREEP are all beautiful ways to be debugging emergent tuning at 11pm with nothing polished to show. Ship the heist; let the gang believe your lies."
+    }
+  ]
+}
