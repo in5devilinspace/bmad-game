@@ -90,4 +90,4 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 
 **Follow-ups filed:** none new. Pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering) remains open.
 
-**Commit:** <filled at commit>
+**Commit:** 00c000b (loop-log hash finalized in the immediately following doc-only commit)
