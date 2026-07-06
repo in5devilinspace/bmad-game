@@ -47,3 +47,25 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. The pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering) remains open.
 
 **Commit:** 3679ad6
+
+---
+
+## 2026-07-06 — Token glyphs: every token now reads firsthand(solid) vs secondhand(hollow)
+
+**Item:** "Full 10-token vocabulary present and each renders a distinct legible glyph (solid vs hollow)."
+
+**Audit:** The exported ledger renderer `drawGlyph` (`src/index.html` ~L1160) already has a distinct case for all 10 vocabulary tokens (TRAP_AT star, SAFE_PATH line, LOOT_AT coin, GEM_AT diamond, ALARM_AT bell, PLATE_AT plate, LOCKED_DOOR padlock, SHORTCUT arrow, ROUTE_PLAN scroll, VAULT_STYLE eye) — no '?'/generic fallback is reachable for the vocabulary, and no two are the same shape. But two of them were **stroke-only** and ignored the `solid` flag that carries the CAP-3 firsthand/secondhand epistemic: **SAFE_PATH** (always a dashed line) and **SHORTCUT** (always an open stroked arrow). So a firsthand (should be solid) and a secondhand (should be hollow) instance of those two rendered pixel-identical. SAFE_PATH is the live case: it is minted firsthand (thief-verified clear region, L453) *and* arrives secondhand via gossip copy (L869), and both forms coexist in a thief's hover ledger — the ledger's own "(heard)" text label was the only firsthand/secondhand cue, the glyph gave none. The other 8 tokens already branch on `fs()` (fill when solid / stroke when hollow) and were correct.
+
+**Change (render-only — 2 case branches in `drawGlyph`, no line-count change, sim/gossip/vocabulary untouched):**
+- **SAFE_PATH** (L1166): firsthand now draws a **solid continuous** diagonal line; secondhand keeps the **dashed** line (`if (!solid) setLineDash(...)`). Thematically exact: a path you walked = solid/verified, a path you were told is clear = dashed/tentative. The belief-ink overlay (L1082, `solid:false`) and whisper picker (L1272, `solid:false`) stay dashed, correct for "heard/about-to-plant."
+- **SHORTCUT** (L1172): shaft still a stroke; the arrowhead is now a closed triangle drawn through `fs()` — **filled** firsthand, **open outline** secondhand. Also reads as an arrow more clearly than the old open V. (SHORTCUT only arises today via the SAFE_PATH→SHORTCUT type-slip, i.e. always secondhand, but the branch is now contract-complete for any firsthand SHORTCUT.)
+
+**Verification evidence:**
+- `node tests/run-tests.mjs`: **ALL SUITES PASSED — shipped `<script id="sim">` verified** (sim 31 passed/0 failed; gossip 35 assertions). No sim/gossip regression (change is outside the sim block).
+- `node --check` on the extracted sim block (evaluates, publishes `WH.sim`+`WH.gossip`) and on the extracted render block (L949–1761): **both OK**.
+- Line count 1960 → **1960** (< 2000 cap). No numerals added to any glyph; three-state trust ring (L1204) unchanged.
+- `game-verifier` (Playwright/Chromium, `file://`): **PASS** — 0 console errors, 0 uncaught exceptions, 0 failed requests; canvas 1280×800 renders full vault; 6 thieves raiding, 5/6 changed grid cells across two frames ~2.6s apart; night 1 → **debrief** reached with `throws: []` (round-table gossip scene with token glyphs, incl. a mutation-marked token, renders). Direct pixel test of the two changed branches via exported `WH.render.drawGlyph`: **SAFE_PATH solid 1095px vs hollow 820px**, **SHORTCUT solid 1077px vs hollow 1538px** — both differ, no error, proving solid≠hollow at render level. Live hover ledger surfaced (Vex, 8 tokens incl. 3 firsthand SAFE_PATH drawn solid); only firsthand tokens present that early (no gossip propagated yet), so the live hollow case is covered by the direct pixel test rather than an in-ledger secondhand token.
+
+**Follow-ups filed:** none new. Noted but not fixed (out of scope, no live impact): the *separate* in-play bubble FX renderer (`drawGlyph` at L1552, distinct IIFE) only special-cases TRAP/ALARM/PLATE/LOOT/GEM/flee and falls back to a generic circle for the other tokens — but bubbles are only ever emitted for danger tokens + flee + mutations during the raid, so the line-token cases are unreachable there. The pre-existing target-hysteresis follow-up (Ash nights 4–5) remains open.
+
+**Commit:** __PENDING__

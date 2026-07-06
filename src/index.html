@@ -1163,13 +1163,13 @@
     function fs() { if (solid) ctx.fill(); else ctx.stroke(); }
     switch (type) {
       case 'TRAP_AT': ctx.beginPath(); for (var k = 0; k < 8; k++) { var an = k / 8 * Math.PI * 2, rr = k % 2 ? r * 0.4 : r; ctx[k ? 'lineTo' : 'moveTo'](x + Math.cos(an) * rr, y + Math.sin(an) * rr); } ctx.closePath(); fs(); break; // spike star
-      case 'SAFE_PATH': ctx.setLineDash([r * 0.4, r * 0.35]); ctx.beginPath(); ctx.moveTo(x - r, y + r * 0.4); ctx.lineTo(x + r, y - r * 0.4); ctx.stroke(); ctx.setLineDash([]); break; // dotted line
+      case 'SAFE_PATH': if (!solid) ctx.setLineDash([r * 0.4, r * 0.35]); ctx.beginPath(); ctx.moveTo(x - r, y + r * 0.4); ctx.lineTo(x + r, y - r * 0.4); ctx.stroke(); ctx.setLineDash([]); break; // path: firsthand solid line / secondhand dashed
       case 'LOOT_AT': ctx.beginPath(); ctx.arc(x, y, r * 0.8, 0, 7); fs(); if (!solid) { ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, 7); ctx.stroke(); } break; // coin
       case 'GEM_AT': ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * 0.8, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * 0.8, y); ctx.closePath(); fs(); break; // gem
       case 'ALARM_AT': ctx.beginPath(); ctx.arc(x, y - r * 0.1, r * 0.75, Math.PI, 0); ctx.lineTo(x + r * 0.7, y + r * 0.5); ctx.lineTo(x - r * 0.7, y + r * 0.5); ctx.closePath(); fs(); ctx.beginPath(); ctx.arc(x, y + r * 0.6, r * 0.16, 0, 7); ctx.fill(); break; // bell
       case 'PLATE_AT': ctx.beginPath(); ctx.rect(x - r * 0.8, y - r * 0.55, r * 1.6, r * 1.1); fs(); ctx.strokeRect(x - r * 0.5, y - r * 0.3, r, r * 0.6); break; // plate
       case 'LOCKED_DOOR': ctx.beginPath(); ctx.rect(x - r * 0.6, y - r * 0.1, r * 1.2, r * 0.9); fs(); ctx.beginPath(); ctx.arc(x, y - r * 0.1, r * 0.42, Math.PI, 0); ctx.stroke(); break; // padlock
-      case 'SHORTCUT': ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x + r * 0.4, y); ctx.moveTo(x, y - r * 0.5); ctx.lineTo(x + r * 0.5, y); ctx.lineTo(x, y + r * 0.5); ctx.stroke(); break; // arrow
+      case 'SHORTCUT': ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x + r * 0.2, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x + r * 0.15, y - r * 0.45); ctx.lineTo(x + r * 0.7, y); ctx.lineTo(x + r * 0.15, y + r * 0.45); ctx.closePath(); fs(); break; // arrow: firsthand filled head / secondhand open head
       case 'ROUTE_PLAN': ctx.beginPath(); ctx.rect(x - r * 0.7, y - r * 0.8, r * 1.4, r * 1.6); fs(); ctx.beginPath(); for (var m = -1; m <= 1; m++) { ctx.moveTo(x - r * 0.45, y + m * r * 0.4); ctx.lineTo(x + r * 0.45, y + m * r * 0.4); } ctx.stroke(); break; // scroll
       case 'VAULT_STYLE': case 'eye': ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.6, 0, 0, 7); fs(); ctx.beginPath(); ctx.arc(x, y, r * 0.3, 0, 7); ctx.fillStyle = C.bg; ctx.fill(); break; // eye
       case 'shield': ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * 0.7, y - r * 0.5); ctx.lineTo(x + r * 0.5, y + r * 0.8); ctx.lineTo(x, y + r); ctx.lineTo(x - r * 0.5, y + r * 0.8); ctx.lineTo(x - r * 0.7, y - r * 0.5); ctx.closePath(); fs(); break;
