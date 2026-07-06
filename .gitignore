@@ -1,4 +1,5 @@
 node_modules/
 .remember/
+_bmad/config.user.yaml
 *.log
 .DS_Store
