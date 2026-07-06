@@ -1,20 +1,10 @@
 // WHISPER HEIST — sim core deterministic tests (no deps).
 // Run: node "tests/sim.test.mjs"
-// Evals build/sim.js in this Node context (the IIFE binds to globalThis), then asserts.
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import vm from 'node:vm';
+// Exercises the SHIPPED `<script id="sim">` block extracted from src/index.html
+// (the one source of truth) — never a build/*.js copy. See tests/extract-sim.mjs.
+import { loadWH } from './extract-sim.mjs';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const src = readFileSync(join(here, '..', 'build', 'sim.js'), 'utf8');
-
-// Evaluate the module in a sandbox that looks like a browserless global.
-const sandbox = { globalThis: null, Math, console };
-sandbox.globalThis = sandbox;
-vm.createContext(sandbox);
-vm.runInContext(src, sandbox);
-const WH = sandbox.WH;
+const WH = loadWH();
 const sim = WH.sim;
 
 let passed = 0, failed = 0;

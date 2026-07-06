@@ -1,24 +1,14 @@
 // Deterministic node test for WH.gossip (no deps).
-// Evals build/sim.js (if present) then build/gossip.js in this global scope,
-// then asserts CAP-4 propagation, exaggerate hierarchy-growth, fear-once,
-// and confidence clamping.
+// Exercises the SHIPPED `<script id="sim">` block extracted from src/index.html
+// (the one source of truth) — both WH.sim and WH.gossip come from the same block,
+// never a build/*.js copy. See tests/extract-sim.mjs. Asserts CAP-4 propagation,
+// exaggerate hierarchy-growth, fear-once, and confidence clamping.
 //
 // Run: node "tests/gossip.test.mjs"
-import { readFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import vm from 'node:vm';
-
-const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, '..');
-const SIM = join(root, 'build', 'sim.js');
-const GOSSIP = join(root, 'build', 'gossip.js');
-
-// One shared global sandbox so WH persists across evals.
-const g = globalThis;
-g.window = undefined; // force gossip's IIFE onto globalThis branch
+import { loadWH } from './extract-sim.mjs';
 
 // mulberry32 — a deterministic seeded PRNG, mirrors interfaces.md.
+// Used to build test fixtures' game.rng below.
 function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {
@@ -29,16 +19,8 @@ function mulberry32(seed) {
   };
 }
 
-if (existsSync(SIM)) {
-  vm.runInThisContext(readFileSync(SIM, 'utf8'), { filename: 'build/sim.js' });
-}
-vm.runInThisContext(readFileSync(GOSSIP, 'utf8'), { filename: 'build/gossip.js' });
-
-const WH = g.WH;
+const WH = loadWH();
 if (!WH || !WH.gossip) throw new Error('WH.gossip not loaded');
-// Ensure a PRNG exists even if sim.js is not built yet.
-WH.sim = WH.sim || {};
-if (typeof WH.sim.rng !== 'function') WH.sim.rng = mulberry32(0xC0FFEE);
 
 const G = WH.gossip;
 
