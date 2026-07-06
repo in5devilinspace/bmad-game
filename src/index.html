@@ -1134,13 +1134,15 @@
     var b = t.beat || {}, tt = b.t == null ? 0.5 : b.t, R = cam.cell * 1.1; ctx.save();
     ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, 7); ctx.strokeStyle = hexA(col, 0.4); ctx.setLineDash([3, 4]); ctx.stroke(); ctx.setLineDash([]); // pause ring
     var aa = b.a ? Math.atan2(b.a.y - t.pos.y, b.a.x - t.pos.x) : -Math.PI / 2, ab = b.b ? Math.atan2(b.b.y - t.pos.y, b.b.x - t.pos.x) : Math.PI / 2;
-    var wob = Math.sin(tt * Math.PI * 6) * 0.5 + 0.5, ang = aa + (ab - aa) * wob; if (b.winner === 'a') ang = aa; else if (b.winner === 'b') ang = ab; // eye-flick / wobbling intent arrow
+    var wob = Math.sin(tt * Math.PI * 6) * 0.5 + 0.5, ang = aa + (ab - aa) * wob;   // eye-flick / wobbling intent arrow between the two options
+    var snap = tt < 0.66 ? 0 : (tt - 0.66) / 0.34;                                   // final third of the pause: ease the arrow onto the committed winner, then commit
+    if (b.winner) ang += ((b.winner === 'a' ? aa : ab) - ang) * snap;
     ctx.globalAlpha = 0.9; ctx.strokeStyle = col; ctx.lineWidth = Math.max(2, cam.cell * 0.09); ctx.beginPath(); ctx.moveTo(p.x, p.y);
     var ex = p.x + Math.cos(ang) * R, ey = p.y + Math.sin(ang) * R; ctx.lineTo(ex, ey);
     ctx.lineTo(ex - Math.cos(ang - 0.4) * cam.cell * 0.3, ey - Math.sin(ang - 0.4) * cam.cell * 0.3); ctx.moveTo(ex, ey);
     ctx.lineTo(ex - Math.cos(ang + 0.4) * cam.cell * 0.3, ey - Math.sin(ang + 0.4) * cam.cell * 0.3); ctx.stroke();
     ctx.fillStyle = C.ink; // eye-flick dots between the two options
-    [aa, ab].forEach(function (a2) { ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.arc(p.x + Math.cos(a2) * R * 0.5, p.y + Math.sin(a2) * R * 0.5, cam.cell * 0.06, 0, 7); ctx.fill(); });
+    [aa, ab].forEach(function (a2, di) { var win = ((b.winner === 'a' ? 0 : 1) === di); ctx.globalAlpha = win ? 0.5 + 0.5 * snap : 0.6; ctx.beginPath(); ctx.arc(p.x + Math.cos(a2) * R * 0.5, p.y + Math.sin(a2) * R * 0.5, cam.cell * (win ? 0.06 + 0.05 * snap : 0.06), 0, 7); ctx.fill(); });
     ctx.restore();
   }
 
@@ -1807,8 +1809,12 @@
     for (var i = 0; i < game.thieves.length; i++) {
       var t = game.thieves[i];
       if (t.delib > 0 && t.options && t.options.length) {
-        var b = t.options[1] || t.options[0];
-        t.beat = { a: t.options[0].target, b: b.target, t: 1 - (t.delib / 300), winner: null };
+        // a = top-scored option; b = the option the thief actually commits (t.pending, a reference into
+        // t.options): under commitment-inertia that's a different-goal option it keeps, else the runner-up.
+        // winner tells drawBeat which of the two to snap the intent arrow to at the end of the pause.
+        var top = t.options[0], pend = t.pending || top, keptOther = pend !== top;
+        var b = keptOther ? pend : (t.options[1] || top);
+        t.beat = { a: top.target, b: b.target, t: 1 - (t.delib / 300), winner: keptOther ? 'b' : 'a' };
       } else t.beat = null;
     }
   }

@@ -69,3 +69,25 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. Noted but not fixed (out of scope, no live impact): the *separate* in-play bubble FX renderer (`drawGlyph` at L1552, distinct IIFE) only special-cases TRAP/ALARM/PLATE/LOOT/GEM/flee and falls back to a generic circle for the other tokens — but bubbles are only ever emitted for danger tokens + flee + mutations during the raid, so the line-token cases are unreachable there. The pre-existing target-hysteresis follow-up (Ash nights 4–5) remains open.
 
 **Commit:** 9f68cb1
+
+---
+
+## 2026-07-06 — Deliberation beat: the intent arrow now snaps to the move the thief actually commits
+
+**Item:** "Deliberation beat (pause → eye-flick → wobbling intent arrow → commit) visible before every committed thief move."
+
+**Finding (partially wired, not absent):** The sim already delivers the sim-time pause per the contract (`render-plan.md` CAP-6, `interfaces.md` coupling): on each rescore `stepRaid` sets `th.delib = 300` and `th.rescore = 2000` (src/index.html L611), decrements `delib` on the fixed 100ms sub-steps, and runs `commitPlan` when it hits 0 (L589). It exposes the scored options (`th.options`, sorted best-first, L601) and the committed pick (`th.pending`) — the top-two exposure the item wants, already present in shipped code, **not** routed through the presentation beat queue (it's sim-time, budget-exempt, correct). Render already drew a dashed pause ring, two eye-flick dots, and a wobbling intent arrow (`drawBeat` L1133), fed by `syncBeats` (L1806). **The gap:** `syncBeats` hardcoded `winner: null`, so `drawBeat`'s snap branch never fired — the arrow wobbled for the full 300ms and simply vanished at commit, so the contract's closing beat ("snaps to winner → move") was invisible. Worse, the second option shown was `options[1]`, ignoring `th.pending`; under the commitment-inertia mechanic (a prior iteration) the committed goal can differ from the top-scored one, so even a snap could have pointed at the wrong option.
+
+**Change (render-only — both edited functions live OUTSIDE `<script id="sim">`, so no sim/gossip/determinism surface touched):**
+- `syncBeats` (L1806): compute `winner` from `th.pending` (a reference into `th.options`). `a` = top-scored option; `b` = the committed pick when inertia keeps a different-goal option, else the runner-up (`options[1]`). `winner` = `'a'` when `pending === options[0]`, else `'b'`. So the two flicked options are the ones the thief is genuinely torn between (greedy-best vs. what it commits), and the snap tracks the real decision.
+- `drawBeat` (L1133): for `tt >= 0.66` (final third of the pause) ease the intent arrow from its wobble onto the winner angle, reaching it exactly at commit; brighten + enlarge the winning eye-flick dot as it snaps. Wobble/eye-flick unchanged for the first two-thirds.
+- No numerals added; closed vocabulary + zero-numeral HUD honored (beat is pure geometry: ring, dots, arrow). Line count 1960 → **1966** (< 2000 cap).
+
+**Verification evidence:**
+- `node tests/run-tests.mjs`: **ALL SUITES PASSED — shipped `<script id="sim">` verified** (sim 31 passed/0 failed; gossip 35 assertions). No sim/gossip regression — the change is outside the sim block, so determinism/policy-equivalence are untouched.
+- `node --check` on all three extracted inline `<script>` blocks (sim, render, main loop): **all OK**.
+- `game-verifier` (Playwright/Chromium, `file://`, live running game — `game` captured via a `WH.render.draw` wrapper, no files touched): **PASS** on all checks. 0 console errors / 0 uncaught exceptions / 0 failed requests; canvas 1280×800 renders full vault; click → raid, 5/6 thieves moved over ~2.1s (Nix held at entry in `survive` — correct coward behavior). Beat probe over 352 rendered raid frames / 1189 `delib>0` thief-samples: **100%** had non-empty `options` + non-null `pending` before commit (a); `winnerNull=0` (winnerA=1018, winnerB=171), `beat.t` climbed monotonically 0 → 0.944 as `delib` fell 300 → 16.8 (b); committed-winner consistency **0 violations** — `cCheckA_ok=1018/bad=0`, `cCheckB_ok=171/bad=0`, and the commitment-inertia `'b'` case genuinely fired 171× (c); mid-raid screenshot `/tmp/wh_beat.png` caught a pause ring + intent arrow + eye-flick dots on Moth and Ash (d).
+
+**Follow-ups filed:** none new. Pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering) remains open.
+
+**Commit:** <filled at commit>
