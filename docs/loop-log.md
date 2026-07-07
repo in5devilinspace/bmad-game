@@ -221,3 +221,35 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. The autonomous gem plan usually wins the late-night route (~80% of nights 4–5); the ~13% steal rate is gated downstream by the lockpick threading the upper-hall-b trap and cracking both doors inside 60s (timeout filters the rest) — a legible challenge. Pre-existing target-hysteresis follow-up (Ash nights 4–5) and trust-tinted debrief slides remain open.
 
 **Commit:** (this commit)
+
+---
+
+## 2026-07-06 — Time-to-first-outsmart: proof the planted lie bends a night-2 plan-line (SPEC Success signal / CAP-6 / CAP-4)
+
+**Item:** "Time-to-first-outsmart lands by night two: instrument a scripted run to confirm plan-lines reroute around a planted-safe hallway."
+
+**Outcome: ALREADY WORKED — added the proof. No sim change; `src/index.html` is byte-unchanged (test-only iteration).**
+
+**The testable claim (now locked in):** planting a `TRAP_AT` lie on an otherwise-safe corridor cell C at the NIGHT-1 debrief makes, by NIGHT 2, the lied-to thief's committed plan-line — the dashed route `drawPlanLines` draws from `pos` through `path`, i.e. cells `[pos, ...th.path]` — route AROUND C, whereas the unwhispered control run on the same seed routes THROUGH C, to the SAME destination. The lie is lineage-traced to its WHISPER origin (CAP-4 gate: a lie planted at debrief N alters a night-N+1 plan-line).
+
+**Why it already works (no tuning needed):** iteration 9 folded believed hazards into A* every tick — `DANGER_SURCHARGE = 8` in `stepCost` adds `dm[cell]*8*fear` to entering a believed-danger cell, and `scoreOptions` builds every option's path with that danger-aware ctx (even `follow-plan` recomputes its own path around the thief's own beliefs). This is night-agnostic, so a planted lie bends routing from night 1 onward — the late-night "legend of the star" work was only about the gem being *stolen*, orthogonal to rerouting. A pre-implementation probe over seeds 0–7 confirmed the reroute fires every seed for Vex/Silk/Brick/Moth, to the same destination.
+
+**What changed (tests only):**
+- Added `tests/outsmart.test.mjs` (extractor-based, exercises the shipped `<script id="sim">` via `extract-sim.mjs`). It mirrors the integrator debrief lifecycle exactly — night-1 raid → `endNight` → `runDebrief` → merge → `emitRoutePlans` (startDebrief) → `applyWhisper` at the night-1 debrief → merge → `emitRoutePlans` (finishDebrief) → `beginNight(2)` — then steps night 2 until the target commits and snapshots its plan-line as `[pos, ...path]` (exactly what the renderer draws). Asserts: (a) HEADLINE seed 0, Vex, C picked as a mid-corridor SAFE hall cell ON the control line — control routes THROUGH C, treatment routes AROUND C, SAME destination; (b) CAP-4 — the target still holds `TRAP_AT@C` with `source:'WHISPER'`; (c) determinism — the reroute reproduces byte-identically; (d) night-1 outer-loot win intact / gem not stolen night 1; (e) SWEEP seeds 0..15 → **16/16 control-through, 16/16 rerouted, 16/16 same-destination**; (f) a second SAFE cell (hall-b (11,11)) also reroutes — not a hard-coded fluke.
+- Wired `outsmart.test.mjs` into `tests/run-tests.mjs`.
+- Headline detail: C=(8,9) (hall-a). Control climbs hall-b then runs west along y9 through (8,9); treatment detours the ENTIRE western stretch up to y8 — `…(9,9),(9,8),(8,8),(7,8),(6,8),(5,8),(4,8),(4,9)…` — a full-row bend (very legible), still ending at the outer loot (2,12).
+
+**Player-visibility (already present, confirmed — no render nudge added):** the planted lie renders as a glowing phantom-trap glyph via the belief-ink overlay (`drawBeliefInk`: whisper conf 0.9 → `glow` state with a shadow halo + TRAP_AT star), and each thief's dashed plan-line (`drawPlanLines`, colored per thief) bends around it, against a truth layer (`drawTruth`) that shows NO real trap there — exactly the CAP-7 "read the gap between truth and belief" + CAP-6 reroute. Because the reroute is a full-row detour (not a one-cell hump) it is clearly visible; a render nudge would add risk for no legibility gain, so none was made.
+
+**Verification evidence:**
+- `node tests/run-tests.mjs` → **ALL SUITES PASSED**: sim **31/0**, gossip **35** assertions, chronicle **21/0**, **gem-steal 15/0 (iteration-9 gem balance intact)**, new **outsmart 15/0**.
+- `node --check` (via `new vm.Script`) on all 3 extracted inline `<script>` blocks (967 / 850 / 213 lines): **all SYNTAX OK**.
+- Pre-implementation probe (throwaway, deleted): seeds 0–7 all reroute; kept only the real test.
+- `game-verifier` (real Chromium 1228, playwright-core, `file://`) → **PASS**: 0 console errors / 0 uncaught exceptions / 0 failed requests; canvas renders the vault; click → raid with 6 thieves in genuine motion (pixel-hash changes over 2.2s; Vex/Moth relocate); flow title→raid→debrief→**night 2** (night-moon 1→2 crescents). Live in-page reroute probe via `window.WH.sim`/`WH.gossip`, seed 0, C=(8,9): **has(ctrl)=true** (control through `…(9,9),(8,9),(7,9)…`), **has(treat)=false** (treatment detours to y8 `…(9,8),(8,8),(7,8)…`), `ctrlLast=treatLast={x:2,y:12}` — the planted lie bent a plan-line by night 2 in the running game. Night-2 dashed-plan-line screenshot captured (`/tmp/wh_flow_final.png`).
+- Line count **2053 → 2053** (src unchanged; hard cap 2400).
+
+**Dirty working tree noted:** the repo already had uncommitted spec-doc edits (`docs/spec/spec-whisper-heist/*` modified + `interfaces.md`/`vault-map.md` untracked) and a deleted `.claude/scheduled_tasks.lock` at iteration start — none of that is this iteration's work. This commit touches ONLY this iteration's files (`tests/outsmart.test.mjs`, `tests/run-tests.mjs`, `BACKLOG.md`, `docs/loop-log.md`); the pre-existing dirt was left untouched.
+
+**Follow-ups filed:** none new. Open: belief-ink first-time-viewer readability tuning (next up); accessibility (keyboard whisper UI + `prefers-reduced-motion`); optional muted audio kit; pre-existing target-hysteresis (Ash nights 4–5) and trust-tinted debrief slides.
+
+**Commit:** (this commit)
