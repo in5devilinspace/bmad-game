@@ -15,7 +15,7 @@
 </style>
 </head>
 <body>
-<canvas id="c" tabindex="0" aria-label="Whisper Heist — a heist told in whispers; playable with mouse or keyboard"></canvas>
+<canvas id="c" tabindex="0" aria-label="Whisper Heist — a heist told in whispers; playable with mouse or keyboard. Sound starts off; press M or click the speaker to toggle."></canvas>
 
 <!-- sim core + gossip/mutation: NO DOM references (extracted & unit-tested in Node) -->
 <script id="sim">
@@ -1565,6 +1565,7 @@
   }
   function activate(beat) {
     var c = beat.cell || CENTER, rm = reduced();   // rm: suppress shake/slow-mo, keep ring/confetti conveyance
+    if (root.WH.audio) root.WH.audio.beat(beat.fx);   // optional muted-by-default sound; self-gated (silent while muted), independent of reduced-motion
     switch (beat.fx) {
       case 'plate': if (!rm) { Q.slowmo = SLOWMO_MS; Q.shake = Math.max(Q.shake, 15); } spawnRings(c, 1, '#8fd0ff'); break;
       case 'trap': if (!rm) Q.shake = Math.max(Q.shake, 9); else spawnRings(c, 1, '#ff9f7a'); break;   // shake-only beat still reads as a ring under reduced motion
@@ -1872,6 +1873,132 @@
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
+// WH.audio — optional, MUTED-BY-DEFAULT WebAudio kit (BACKLOG: audio item).
+// One AudioContext, lazily built on the first user gesture (browser autoplay policy).
+// NOTHING is audible until the player opts in: the master gain starts at 0 AND every
+// voice early-returns while muted, so no oscillator/noise node is EVER started in the
+// muted state. All sound is SYNTHESIZED (oscillators + a tiny noise buffer) — no external
+// assets. Voices are driven by the SAME governed events the juice layer reacts to: dramatic
+// beats route through juice.activate -> beat(fx) (already capped at one-per-GAP); footsteps
+// sample thief cell-transitions with a global throttle so six thieves never machine-gun.
+// Independent of prefers-reduced-motion (that governs motion, not sound) but kept unobtrusive.
+(function (root) {
+  root.WH = root.WH || {};
+  var actx = null, master = null, muted = true, ready = false, noiseBuf = null;
+  var footClock = 0, lastFoot = -1e9, FOOT_GATE = 150, cells = {};   // one soft tick per FOOT_GATE ms of movement
+  var CEIL = 0.55;                                                    // gentle master ceiling; per-voice peaks stay well below it
+
+  function AC() { return root.AudioContext || root.webkitAudioContext; }
+  function supported() { return typeof AC() === 'function'; }
+  function init() {                          // idempotent; call only from within a user gesture
+    if (ready || !supported()) return;
+    try {
+      actx = new (AC())();
+      master = actx.createGain();
+      master.gain.value = 0;                 // silent by default (muted)
+      master.connect(actx.destination);
+      ready = true;
+    } catch (e) { actx = null; master = null; ready = false; }
+  }
+  function isMuted() { return muted; }
+  function setMuted(m) {
+    muted = !!m;
+    if (!muted) {
+      init();
+      if (!ready) { muted = true; return muted; }                    // no WebAudio -> stay silent
+      if (actx.state === 'suspended') { try { actx.resume(); } catch (e) { } }
+    }
+    if (master) {
+      var t = actx.currentTime, tgt = muted ? 0 : CEIL;
+      try { master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.linearRampToValueAtTime(tgt, t + 0.06); }
+      catch (e) { master.gain.value = tgt; }
+    }
+    return muted;
+  }
+  function toggle() { return setMuted(!muted); }
+
+  // ---- synthesis primitives ---------------------------------------------
+  function noise() {
+    if (noiseBuf) return noiseBuf;
+    var n = Math.floor(actx.sampleRate * 0.09), d;
+    noiseBuf = actx.createBuffer(1, n, actx.sampleRate); d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+  function osc(type, f0, f1, t0, dur, peak) {         // one enveloped (optionally sweeping) oscillator voice
+    var o = actx.createOscillator(); o.type = type;
+    o.frequency.setValueAtTime(f0, t0);
+    if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t0 + dur);
+    var g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(master);
+    o.start(t0); o.stop(t0 + dur + 0.03);
+  }
+  function bell(f, t0, peak) { osc('sine', f, f, t0, 0.55, peak); osc('sine', f * 2.01, f * 2.01, t0, 0.34, peak * 0.32); }
+
+  // ---- voices ------------------------------------------------------------
+  function footstepVoice() {                          // short filtered-noise click
+    var t0 = actx.currentTime + 0.001;
+    var src = actx.createBufferSource(); src.buffer = noise();
+    var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 200 + Math.random() * 120; bp.Q.value = 0.9;
+    var g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.05, t0 + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t0); src.stop(t0 + 0.09);
+  }
+  function alarmSting(t0) {                            // dissonant ~tritone sweep — the vault waking
+    osc('sawtooth', 300, 430, t0, 0.6, 0.24);
+    osc('sawtooth', 426, 300, t0, 0.6, 0.20);
+  }
+  function chime(t0, big) {                            // pleasant bell arpeggio (confetti)
+    var notes = big ? [523.25, 659.25, 783.99, 1046.5] : [659.25, 783.99, 987.77], i;
+    for (i = 0; i < notes.length; i++) bell(notes[i], t0 + i * 0.085, big ? 0.17 : 0.13);
+  }
+  function thud(t0) { osc('sine', 150, 70, t0, 0.28, 0.22); }         // plate / trap low knock
+  function whisperCue() {                              // soft breathy "shhh" on a placed lie
+    var t0 = actx.currentTime + 0.001;
+    var src = actx.createBufferSource(); src.buffer = noise();
+    var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.setValueAtTime(1400, t0); bp.frequency.exponentialRampToValueAtTime(600, t0 + 0.4); bp.Q.value = 1.2;
+    var g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.05, t0 + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.42);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t0); src.stop(t0 + 0.45);
+  }
+
+  // ---- public event hooks (all self-gated: no-op while muted / not ready) -----
+  function beat(fx) {                                  // one governed dramatic beat -> one sound
+    if (!ready || muted) return;
+    var t0 = actx.currentTime + 0.001;
+    switch (fx) {
+      case 'armed': case 'alarm': alarmSting(t0); break;   // ALARM_ARMED / ALARM_TRIPPED
+      case 'loot': chime(t0, false); break;                // LOOT_GRAB
+      case 'gem': chime(t0, true); break;                  // GEM_GRAB
+      case 'plate': case 'trap': thud(t0); break;
+    }
+  }
+  function cue(kind) { if (ready && !muted && kind === 'whisper') whisperCue(); }
+  function footsteps(game, dt) {                      // sample thief movement; global throttle
+    if (!ready || muted || !game || !game.thieves) return;
+    footClock += (dt || 0);
+    var moved = false, i, t, k, c, a = game.thieves;
+    for (i = 0; i < a.length; i++) {
+      t = a[i]; if (!t || !t.pos) continue;
+      k = t.id; c = (t.pos.x | 0) + ',' + (t.pos.y | 0);
+      if (cells[k] !== undefined && cells[k] !== c) moved = true;
+      cells[k] = c;
+    }
+    if (moved && footClock - lastFoot >= FOOT_GATE) { footstepVoice(); lastFoot = footClock; }
+  }
+
+  root.WH.audio = {
+    init: init, toggle: toggle, setMuted: setMuted, muted: isMuted, supported: supported,
+    beat: beat, cue: cue, footsteps: footsteps,
+    _actx: function () { return actx; }, _master: function () { return master; }   // for the verifier
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
 </script>
 
 <!-- integrator bootstrap: state machine, input, requestAnimationFrame loop -->
@@ -1989,6 +2116,7 @@
     if (!(cell && game.world.grid[cell.x] && game.world.grid[cell.x][cell.y] === 'floor')) return;
     WH.gossip.applyWhisper(game, debrief.chosenThief.id, { type: debrief.chosenType, loc: cell });
     game.beliefMap = WH.sim.mergeBelief(game.thieves);
+    if (WH.audio) WH.audio.cue('whisper');   // soft "shhh" when a lie is actually planted
     finishDebrief();
   }
   // keyboard cursor helpers for the location mini-map (only floor cells are legal)
@@ -2032,6 +2160,7 @@
   });
   canvas.addEventListener('click', function (e) {
     var mx = e.clientX, my = e.clientY;
+    if (WH.audio) { WH.audio.init(); if (Math.hypot(mx - soundBtn.x, my - soundBtn.y) < soundBtn.r * 1.7) { WH.audio.toggle(); return; } }   // speaker toggle is live in every mode
     if (mode === 'title') { newRun(); return; }
     if (mode === 'chronicle') { mode = 'title'; titleStart = performance.now(); return; }
     if (mode === 'raid') {
@@ -2064,6 +2193,7 @@
   //   Esc / Backspace "holds your tongue" (skip). Every step has a visible focus cue.
   window.addEventListener('keydown', function (e) {
     var k = e.key;
+    if (WH.audio) { WH.audio.init(); if (k === 'm' || k === 'M') { WH.audio.toggle(); e.preventDefault(); return; } }   // 'm' mutes/unmutes in every mode
     if (mode === 'title') { newRun(); return; }
     if (mode === 'chronicle') { mode = 'title'; titleStart = performance.now(); return; }
     if (mode !== 'debrief' || !debrief) return;
@@ -2113,6 +2243,21 @@
     for (var i = 0; i < game.night; i++) { var x = 26 + i * 20, y = 26; ctx.fillStyle = 'rgba(201,185,133,0.92)'; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill(); ctx.fillStyle = '#05060a'; ctx.beginPath(); ctx.arc(x + 3, y - 1, 5.5, 0, 7); ctx.fill(); }
     ctx.restore();
   }
+  // Discoverable, always-on-canvas sound toggle (top-right). Muted = dim speaker + slash;
+  // unmuted = lit speaker + sound waves. Zero numerals. Click it, or press 'm' (see keydown).
+  var soundBtn = { x: 0, y: 0, r: 15 };
+  function drawSoundToggle() {
+    var on = !!(WH.audio && !WH.audio.muted());
+    soundBtn.x = canvas.width - 32; soundBtn.y = 30;
+    ctx.save();
+    ctx.translate(soundBtn.x, soundBtn.y);
+    var col = on ? 'rgba(201,185,133,0.95)' : 'rgba(150,160,175,0.55)';
+    ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-9, -4); ctx.lineTo(-4, -4); ctx.lineTo(1, -9); ctx.lineTo(1, 9); ctx.lineTo(-4, 4); ctx.lineTo(-9, 4); ctx.closePath(); ctx.fill();   // speaker cone
+    if (on) { ctx.beginPath(); ctx.arc(3, 0, 5, -0.9, 0.9); ctx.stroke(); ctx.beginPath(); ctx.arc(3, 0, 9, -0.9, 0.9); ctx.stroke(); }   // sound waves
+    else { ctx.beginPath(); ctx.moveTo(4, -7); ctx.lineTo(12, 7); ctx.stroke(); }                                                        // muted slash
+    ctx.restore();
+  }
 
   // ---- main loop ----------------------------------------------------------
   function frame(now) {
@@ -2129,6 +2274,7 @@
       syncBeats();
       WH.juice.sync(game);
       WH.juice.tick(dt * scale);   // slow-mo dilates only the fx layer (confetti, rings, bubbles)
+      if (WH.audio) WH.audio.footsteps(game, dt);   // real-time footstep ticks (self-gated; silent while muted)
       var cam = WH.render.defaultCam(canvas.width, canvas.height);
       game.view = { cell: cam.cell, ox: cam.ox, oy: cam.oy };   // align juice fx to render grid
       var shake = WH.juice.camera();
@@ -2165,6 +2311,7 @@
       ctx.save(); ctx.fillStyle = 'rgba(231,237,245,' + (0.35 + 0.3 * Math.sin(now / 500)) + ')'; ctx.font = 'italic ' + Math.round(Math.min(canvas.width * 0.02, 18)) + 'px Georgia,serif'; ctx.textAlign = 'center';
       ctx.fillText('click or press a key for another job', canvas.width / 2, canvas.height - 26); ctx.restore();
     }
+    drawSoundToggle();   // always-visible mute/unmute speaker (all modes)
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -2181,7 +2328,11 @@
     get chosen() { return debrief ? { thief: debrief.chosenThief && debrief.chosenThief.name, type: debrief.chosenType } : null; },
     whisperCount: function () { var n = 0, L = (game && game.eventLog) || []; for (var i = 0; i < L.length; i++) if (L[i].type === 'WHISPER') n++; return n; },
     endRaid: function () { if (mode === 'raid' && game && game.raid) { game.raid.over = true; game.raid.gemStolen = false; } },
-    reducedMotion: function () { return (typeof matchMedia === 'function') && matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    reducedMotion: function () { return (typeof matchMedia === 'function') && matchMedia('(prefers-reduced-motion: reduce)').matches; },
+    audio: function () {   // muted-by-default proof surface: master gain + whether an AudioContext exists yet
+      var A = WH.audio; if (!A) return null;
+      return { muted: A.muted(), supported: A.supported(), hasCtx: !!A._actx(), gain: A._master() ? A._master().gain.value : null };
+    }
   };
 })();
 
