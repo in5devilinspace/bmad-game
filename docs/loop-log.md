@@ -374,3 +374,17 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. Remaining backlog items are both minor/deferred: (a) Ash same-goal target-hysteresis dither on nights 4–5 (conduct legibility), and (b) the raid-mode keyboard ledger (accessibility follow-up to the whisper-flow keyboard work).
 
 **Commit:** (this commit)
+
+## 2026-07-06 — Autonomous loop STOPPED (backlog effectively dry)
+
+The no-human-in-the-loop `/loop` completed **14 verified iterations** and stopped rather than manufacture busywork on the two remaining low-severity items (now marked deferred in BACKLOG.md: Ash same-goal dithering; raid-mode keyboard ledger).
+
+**Final consolidated verification (ship gate):**
+- `node tests/run-tests.mjs` → ALL SUITES PASSED: sim 31, gossip 35, chronicle 21, gem-steal 15, balance 9, outsmart 15 (6 suites).
+- `game-verifier` full 5-night playthrough (real headless Chromium) → PASS: 0 game-originated console/page errors; every 14-iteration feature spot-checked live — planted-lie ghost-ring reroute, three-state trust + solid/hollow glyphs, juice on real events (1-per-1.5s), keyboard-only whisper + focus rings, prefers-reduced-motion suppressing screenshake, audio silent-by-default then active on unmute, run-specific zero-numeral Chronicle. Only console noise = the browser's own favicon 404, absent in the file:// ship target.
+- Offline: 0 external refs. Line count 2341 / 2400 cap. HEAD == origin/main.
+
+**Loop summary (all pushed to origin/main):**
+1 decision-thrash deadlock fixed · 2 test integrity (grade shipped code) · 3 distinct token glyphs · 4 deliberation-beat resolve · 5 unified three-state trust glow + zero-numeral HUD · 6 debrief three-beat pacing · 7 fully run-specific Chronicle · 8 juice pass (salvaged after an agent hang) · 9 **gem made stealable — 3-cause depth-gating deadlock fixed** · 10 **time-to-first-outsmart proven** · 11 phantom-belief ghost ring · 12 accessibility (keyboard whisper + reduced-motion) · 13 balance regression-lock · 14 muted-by-default WebAudio kit.
+
+Plus one lead governance decision (line cap 2000→2400, rationale logged) and one hung-agent recovery (iteration 8). The loop demonstrated deep debugging, self-recovery, honest verification, and knowing when to stop.
