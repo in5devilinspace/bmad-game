@@ -9,10 +9,13 @@
   html, body { margin: 0; padding: 0; height: 100%; background: #05060a; overflow: hidden; }
   body { font-family: Georgia, "Times New Roman", serif; }
   #c { display: block; width: 100vw; height: 100vh; background: #05060a; cursor: crosshair; touch-action: none; }
+  /* keyboard focus is visible; a mouse click never paints the outline (:focus-visible) */
+  #c:focus { outline: none; }
+  #c:focus-visible { outline: 3px solid #5fd0bf; outline-offset: -3px; }
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
+<canvas id="c" tabindex="0" aria-label="Whisper Heist — a heist told in whispers; playable with mouse or keyboard"></canvas>
 
 <!-- sim core + gossip/mutation: NO DOM references (extracted & unit-tested in Node) -->
 <script id="sim">
@@ -1391,6 +1394,15 @@
   var BUB_TTL = 1900;
   var SLOWMO_MS = 650;
 
+  // Accessibility: honour the OS "reduce motion" preference. Screenshake + slow-mo
+  // (large, whole-scene motion) are suppressed; the same events still read via the
+  // shockwave rings / confetti / a flash the shake would otherwise carry. Read live
+  // — a MediaQueryList's `.matches` updates itself, so toggling the OS setting takes
+  // effect mid-run with no reload. `typeof` guard keeps the Node test VM (no
+  // matchMedia) safe: reduced() is simply always false there.
+  var _rmq = (typeof matchMedia === 'function') ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+  function reduced() { return !!(_rmq && _rmq.matches); }
+
   var GEM_CELL = { x: 11, y: 0 };
   var CENTER = { x: 11, y: 8 };
 
@@ -1552,14 +1564,14 @@
     }
   }
   function activate(beat) {
-    var c = beat.cell || CENTER;
+    var c = beat.cell || CENTER, rm = reduced();   // rm: suppress shake/slow-mo, keep ring/confetti conveyance
     switch (beat.fx) {
-      case 'plate': Q.slowmo = SLOWMO_MS; Q.shake = Math.max(Q.shake, 15); spawnRings(c, 1, '#8fd0ff'); break;
-      case 'trap': Q.shake = Math.max(Q.shake, 9); break;
+      case 'plate': if (!rm) { Q.slowmo = SLOWMO_MS; Q.shake = Math.max(Q.shake, 15); } spawnRings(c, 1, '#8fd0ff'); break;
+      case 'trap': if (!rm) Q.shake = Math.max(Q.shake, 9); else spawnRings(c, 1, '#ff9f7a'); break;   // shake-only beat still reads as a ring under reduced motion
       case 'armed': spawnRings(c, 1, '#ffcf6b'); break;
-      case 'alarm': Q.shake = Math.max(Q.shake, 11); spawnRings(c, 3, '#ff5b5b'); break;
+      case 'alarm': if (!rm) Q.shake = Math.max(Q.shake, 11); spawnRings(c, 3, '#ff5b5b'); break;
       case 'loot': spawnConfetti(c, 20); break;
-      case 'gem': Q.slowmo = SLOWMO_MS; Q.shake = Math.max(Q.shake, 7); spawnConfetti(c, 46); break;   // heist climax: slow-mo + confetti burst
+      case 'gem': if (!rm) { Q.slowmo = SLOWMO_MS; Q.shake = Math.max(Q.shake, 7); } spawnConfetti(c, 46); break;   // heist climax: slow-mo + confetti burst
     }
   }
   function spawnRings(c, n, color) {
@@ -1577,8 +1589,8 @@
   }
 
   // ---- draw: layer 7 fx --------------------------------------------------
-  function camera() { return Q.cam || { x: 0, y: 0 }; }   // cached per-frame in tick() so scene + fx shake in lockstep
-  function timeScale() { return Q.slowmo > 0 ? 0.35 : 1; }
+  function camera() { return reduced() ? { x: 0, y: 0 } : (Q.cam || { x: 0, y: 0 }); }   // cached per-frame in tick() so scene + fx shake in lockstep; reduced-motion pins it to no offset (live)
+  function timeScale() { return (!reduced() && Q.slowmo > 0) ? 0.35 : 1; }               // reduced-motion never dilates time
   function bubbleCount() { return Q.bubbles.length; }
 
   function drawFx(ctx, game) {
@@ -1871,6 +1883,7 @@
   var ctx = WH.render.init(canvas);
   function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
   window.addEventListener('resize', resize); resize();
+  try { canvas.focus(); } catch (e) { }   // give the canvas keyboard focus so key controls work immediately
 
   var game = null, mode = 'title', seed = 0;
   var titleStart = performance.now(), chronStart = 0, last = performance.now();
@@ -1960,6 +1973,53 @@
     mode = 'raid';
   }
 
+  // ---- whisper-flow transitions (shared by mouse + keyboard so the two paths can't drift) ----
+  function pickThief(name) {
+    debrief.chosenThief = thiefByName(name);
+    debrief.sub = 'pick-type';
+    debrief.picker = { cx: canvas.width / 2, cy: canvas.height * 0.44, radius: Math.min(canvas.width, canvas.height) * 0.16, hoverIndex: -1, chosenType: null };
+  }
+  function pickType(type) {
+    debrief.chosenType = type; debrief.picker.chosenType = type; debrief.sub = 'pick-loc';
+    var m = Math.min(canvas.width, canvas.height);
+    debrief.mini = { x: canvas.width / 2 - m * 0.28, y: canvas.height * 0.62, w: m * 0.56, h: m * 0.373 };
+    if (!debrief.kCell) debrief.kCell = nearestFloor(11, 13);   // seed the keyboard cursor on a real floor cell
+  }
+  function placeLie(cell) {
+    if (!(cell && game.world.grid[cell.x] && game.world.grid[cell.x][cell.y] === 'floor')) return;
+    WH.gossip.applyWhisper(game, debrief.chosenThief.id, { type: debrief.chosenType, loc: cell });
+    game.beliefMap = WH.sim.mergeBelief(game.thieves);
+    finishDebrief();
+  }
+  // keyboard cursor helpers for the location mini-map (only floor cells are legal)
+  function nearestFloor(tx, ty) {
+    var best = null, bd = 1e9;
+    for (var x = 0; x < 24; x++) for (var y = 0; y < 16; y++) {
+      if (game.world.grid[x] && game.world.grid[x][y] === 'floor') { var d = Math.abs(x - tx) + Math.abs(y - ty); if (d < bd) { bd = d; best = { x: x, y: y }; } }
+    }
+    return best || { x: 11, y: 13 };
+  }
+  function moveCellFocus(dx, dy) {   // step in the arrow direction, skipping walls, until a floor cell or the edge
+    var x = debrief.kCell.x, y = debrief.kCell.y;
+    for (var i = 0; i < 24; i++) { x += dx; y += dy; if (x < 0 || x > 23 || y < 0 || y > 15) return; if (game.world.grid[x] && game.world.grid[x][y] === 'floor') { debrief.kCell = { x: x, y: y }; return; } }
+  }
+  // on-canvas keyboard focus indicator (":focus-visible" for a canvas game)
+  function drawWhisperFocus() {
+    if (!(debrief && debrief.phase === 'whisper')) return;
+    ctx.save();
+    if (debrief.sub === 'pick-thief') {
+      var s = seatPositions()[SEATING[debrief.kThief || 0]], rr = Math.min(canvas.width, canvas.height) * 0.05;
+      ctx.strokeStyle = '#5fd0bf'; ctx.lineWidth = 3; ctx.setLineDash([7, 5]);
+      ctx.beginPath(); ctx.arc(s.x, s.y, rr * 1.5, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    } else if (debrief.sub === 'pick-loc' && debrief.mini && debrief.kCell) {
+      var mn = debrief.mini, kc = debrief.kCell, cs = mn._cell || Math.min(mn.w / 24, mn.h / 16);
+      var bx = mn.x + kc.x * cs, by = mn.y + kc.y * cs;
+      ctx.fillStyle = 'rgba(95,208,191,0.32)'; ctx.fillRect(bx, by, cs - 0.5, cs - 0.5);
+      ctx.strokeStyle = '#5fd0bf'; ctx.lineWidth = 2; ctx.strokeRect(bx - 1, by - 1, cs + 1, cs + 1);
+    }
+    ctx.restore();   // pick-type focus rides the picker's hoverIndex highlight (driven by keyboard below)
+  }
+
   // ---- input --------------------------------------------------------------
   canvas.addEventListener('mousemove', function (e) {
     mouse.x = e.clientX; mouse.y = e.clientY;
@@ -1983,30 +2043,64 @@
       if (debrief.phase === 'anim') { debrief.clock = 1e9; return; }   // click fast-forwards the exchange
       if (debrief.sub === 'pick-thief') {
         var seats = seatPositions(), R = Math.min(canvas.width, canvas.height) * 0.05;
-        for (var i = 0; i < SEATING.length; i++) { var s = seats[SEATING[i]]; if (Math.hypot(mx - s.x, my - s.y) < R * 1.4) { debrief.chosenThief = thiefByName(SEATING[i]); debrief.sub = 'pick-type'; debrief.picker = { cx: canvas.width / 2, cy: canvas.height * 0.44, radius: Math.min(canvas.width, canvas.height) * 0.16, hoverIndex: -1, chosenType: null }; break; } }
+        for (var i = 0; i < SEATING.length; i++) { var s = seats[SEATING[i]]; if (Math.hypot(mx - s.x, my - s.y) < R * 1.4) { debrief.kThief = i; pickThief(SEATING[i]); break; } }   // kThief tracks the mouse pick so keyboard resumes where the mouse left off
         return;
       }
       if (debrief.sub === 'pick-type') {
         var hit = WH.render.whisperPickHit(debrief.picker, mx, my);
         if (hit === '__skip__') { finishDebrief(); return; }        // hold your tongue
-        if (hit) { debrief.chosenType = hit; debrief.picker.chosenType = hit; debrief.sub = 'pick-loc'; var m = Math.min(canvas.width, canvas.height); debrief.mini = { x: canvas.width / 2 - m * 0.28, y: canvas.height * 0.62, w: m * 0.56, h: m * 0.373 }; }
+        if (hit) { debrief.kType = WH.render.WHISPERABLE.indexOf(hit); pickType(hit); }
         return;
       }
       if (debrief.sub === 'pick-loc') {
         var cell = WH.render.miniMapCellHit(debrief.mini, mx, my);
-        if (cell && game.world.grid[cell.x] && game.world.grid[cell.x][cell.y] === 'floor') {
-          WH.gossip.applyWhisper(game, debrief.chosenThief.id, { type: debrief.chosenType, loc: cell });
-          game.beliefMap = WH.sim.mergeBelief(game.thieves);
-          finishDebrief();
-        }
+        if (cell) { debrief.kCell = cell; placeLie(cell); }   // placeLie re-checks the cell is floor
         return;
       }
     }
   });
-  window.addEventListener('keydown', function () {
-    if (mode === 'title') newRun();
-    else if (mode === 'debrief' && debrief && debrief.phase === 'whisper') finishDebrief();  // skip = hold your tongue
-    else if (mode === 'chronicle') { mode = 'title'; titleStart = performance.now(); }
+  // Full keyboard path for the whisper flow (mouse path above is untouched):
+  //   arrows / Tab move the on-canvas selection cursor · Enter or Space commits ·
+  //   Esc / Backspace "holds your tongue" (skip). Every step has a visible focus cue.
+  window.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (mode === 'title') { newRun(); return; }
+    if (mode === 'chronicle') { mode = 'title'; titleStart = performance.now(); return; }
+    if (mode !== 'debrief' || !debrief) return;
+    if (debrief.phase === 'anim') { debrief.clock = 1e9; return; }   // any key fast-forwards the exchange (matches click)
+    if (debrief.phase !== 'whisper') return;
+    var hold = (k === 'Escape' || k === 'Esc' || k === 'Backspace');
+    var commit = (k === 'Enter' || k === ' ' || k === 'Spacebar');
+    var next = (k === 'ArrowRight' || k === 'ArrowDown' || (k === 'Tab' && !e.shiftKey));
+    var prev = (k === 'ArrowLeft' || k === 'ArrowUp' || (k === 'Tab' && e.shiftKey));
+    if (debrief.sub === 'pick-thief') {
+      if (hold) { finishDebrief(); return; }
+      if (debrief.kThief == null) debrief.kThief = 0;
+      if (next) { debrief.kThief = (debrief.kThief + 1) % SEATING.length; e.preventDefault(); }
+      else if (prev) { debrief.kThief = (debrief.kThief + SEATING.length - 1) % SEATING.length; e.preventDefault(); }
+      else if (commit) { pickThief(SEATING[debrief.kThief]); debrief.kType = debrief.kType || 0; debrief.picker.hoverIndex = debrief.kType; e.preventDefault(); }
+      return;
+    }
+    if (debrief.sub === 'pick-type') {
+      if (hold) { finishDebrief(); return; }
+      var W = WH.render.WHISPERABLE;
+      if (debrief.kType == null) debrief.kType = 0;
+      if (next) { debrief.kType = (debrief.kType + 1) % W.length; e.preventDefault(); }
+      else if (prev) { debrief.kType = (debrief.kType + W.length - 1) % W.length; e.preventDefault(); }
+      else if (commit) { pickType(W[debrief.kType]); e.preventDefault(); return; }
+      if (debrief.picker) debrief.picker.hoverIndex = debrief.kType;   // reuse the picker's hover highlight as the keyboard focus ring
+      return;
+    }
+    if (debrief.sub === 'pick-loc') {
+      if (hold) { finishDebrief(); return; }
+      if (!debrief.kCell) debrief.kCell = nearestFloor(11, 13);
+      if (k === 'ArrowRight') { moveCellFocus(1, 0); e.preventDefault(); }
+      else if (k === 'ArrowLeft') { moveCellFocus(-1, 0); e.preventDefault(); }
+      else if (k === 'ArrowUp') { moveCellFocus(0, -1); e.preventDefault(); }
+      else if (k === 'ArrowDown') { moveCellFocus(0, 1); e.preventDefault(); }
+      else if (commit) { placeLie(debrief.kCell); e.preventDefault(); }
+      return;
+    }
   });
 
   // ---- small diegetic helpers --------------------------------------------
@@ -2026,7 +2120,7 @@
     if (mode === 'title') {
       WH.juice.titleScreen(ctx, now - titleStart);
       ctx.save(); ctx.fillStyle = 'rgba(231,237,245,' + (0.4 + 0.3 * Math.sin(now / 500)) + ')'; ctx.font = 'italic ' + Math.round(Math.min(canvas.width * 0.022, 20)) + 'px Georgia,serif'; ctx.textAlign = 'center';
-      ctx.fillText('click to begin the first night', canvas.width / 2, canvas.height * 0.82); ctx.restore();
+      ctx.fillText('click or press a key to begin the first night', canvas.width / 2, canvas.height * 0.82); ctx.restore();
     } else if (mode === 'raid') {
       var scale = WH.juice.timeScale();
       WH.sim.stepRaid(game, dt);   // sim advances on REAL time — presentation (slow-mo) never dilates the simulation (interfaces.md coupling contract)
@@ -2060,19 +2154,35 @@
       game.debrief.picker = (debrief.phase === 'whisper' && debrief.sub === 'pick-type') ? debrief.picker : null;
       game.debrief.mini = (debrief.phase === 'whisper' && debrief.sub === 'pick-loc') ? debrief.mini : null;
       WH.render.drawDebrief(ctx, game);
+      drawWhisperFocus();
       if (debrief.phase === 'whisper') {
-        if (debrief.sub === 'pick-thief') drawHint('whisper a lie — click a thief  (any key: hold your tongue)');
-        else if (debrief.sub === 'pick-type') drawHint('choose a rumor to plant — center to hold your tongue');
-        else if (debrief.sub === 'pick-loc') drawHint('tap where the lie lives');
+        if (debrief.sub === 'pick-thief') drawHint('whisper a lie — click or arrow to a thief, enter to choose  (esc: hold your tongue)');
+        else if (debrief.sub === 'pick-type') drawHint('choose a rumor — click, or arrows then enter  (esc: hold your tongue)');
+        else if (debrief.sub === 'pick-loc') drawHint('place the lie — tap, or arrows then enter  (esc: hold your tongue)');
       }
     } else if (mode === 'chronicle') {
       WH.juice.drawChronicle(ctx, game, now - chronStart);
       ctx.save(); ctx.fillStyle = 'rgba(231,237,245,' + (0.35 + 0.3 * Math.sin(now / 500)) + ')'; ctx.font = 'italic ' + Math.round(Math.min(canvas.width * 0.02, 18)) + 'px Georgia,serif'; ctx.textAlign = 'center';
-      ctx.fillText('click for another job', canvas.width / 2, canvas.height - 26); ctx.restore();
+      ctx.fillText('click or press a key for another job', canvas.width / 2, canvas.height - 26); ctx.restore();
     }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+
+  // Read-only debug surface (for the game-verifier / future headless keyboard tests).
+  // It never drives gameplay and is never wired to input; endRaid() only trips the same
+  // raid-over path stepRaid would, so a verifier need not idle through a full night.
+  WH._debug = {
+    get mode() { return mode; },
+    get phase() { return debrief && debrief.phase; },
+    get sub() { return debrief && debrief.sub; },
+    get night() { return game && game.night; },
+    get cursor() { return debrief ? { kThief: debrief.kThief, kType: debrief.kType, kCell: debrief.kCell } : null; },
+    get chosen() { return debrief ? { thief: debrief.chosenThief && debrief.chosenThief.name, type: debrief.chosenType } : null; },
+    whisperCount: function () { var n = 0, L = (game && game.eventLog) || []; for (var i = 0; i < L.length; i++) if (L[i].type === 'WHISPER') n++; return n; },
+    endRaid: function () { if (mode === 'raid' && game && game.raid) { game.raid.over = true; game.raid.gemStolen = false; } },
+    reducedMotion: function () { return (typeof matchMedia === 'function') && matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  };
 })();
 
 </script>

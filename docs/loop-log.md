@@ -278,3 +278,37 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. Noted (not done, out of scope): (a) the inverse divergence — a `SAFE_PATH` belief over a cell that actually holds a hazard ("they think it's clear but it's rigged") — is not yet cued; it needs line/region-loc reasoning, lower value than the phantom-hazard case the player creates by whispering. (b) Per-thief palette is left as-is; `Brick` (#e0a24a amber) sits close to loot/plate gold in the ink layer, but retinting `THIEF_COL` touches many render sites + tests for marginal gain. Pre-existing target-hysteresis (Ash nights 4–5) and trust-tinted debrief slides remain open.
 
 **Commit:** (this commit)
+
+---
+
+## 2026-07-06 — Accessibility: keyboard-operable whisper UI, prefers-reduced-motion honored, focus-visible canvas
+
+**Item:** "Accessibility: keyboard-operable whisper UI, `prefers-reduced-motion` honored (no screenshake/parallax), focus-visible on all controls."
+
+**Outcome: DONE. Render/integrator only — `<script id="sim">` is byte-IDENTICAL to HEAD (verified by diff).**
+
+**Audit (all three gaps were real):**
+- (a) **No keyboard whisper path.** The `keydown` handler did exactly one thing during the whisper phase: `finishDebrief()` ("hold your tongue"). There was NO way to select a thief, pick a token type, or place a location with the keyboard — the whole flow (click thief → radial token menu → mini-map cell) was mouse-only.
+- (b) **`prefers-reduced-motion` not honored.** No `matchMedia` anywhere. Screenshake (`Q.shake` → `camera()`) and slow-mo (`Q.slowmo` → `timeScale()`) always fired on plate/trap/alarm/gem beats.
+- (c) **No visible focus.** Canvas had no `tabindex`, no `:focus-visible`, and there was no on-canvas keyboard-selection indicator.
+
+**What changed (`src/index.html`):**
+- **Keyboard whisper flow.** Rewrote the `window` `keydown` handler into a real cursor over the three whisper sub-steps: Arrow keys / Tab (Shift+Tab reverses) move an on-canvas selection cursor among the six thieves → the seven rumor types (radial) → the mini-map floor cells; **Enter/Space** commits each step; **Esc/Backspace** "holds your tongue". In `pick-loc`, arrows step in-direction skipping walls to the next floor cell (`moveCellFocus`), starting from the nearest floor cell to the entry (`nearestFloor`). Any key during the gossip `anim` phase fast-forwards it (parity with click).
+- **Shared transitions.** Extracted `pickThief` / `pickType` / `placeLie` used by BOTH mouse and keyboard so the two input paths can't drift; the mouse pick now seeds the keyboard cursor (`kThief`/`kType`/`kCell`) and vice-versa. `placeLie` re-checks the target is floor (same guard the click path had).
+- **Visible focus (`drawWhisperFocus`).** Dashed teal ring around the focused seat (pick-thief); the radial picker's existing hover-highlight is driven by the keyboard `kType` (pick-type); a teal focus box on the mini-map cell (pick-loc). Canvas got `tabindex="0"`, an `aria-label`, a `#c:focus-visible { outline: 3px solid #5fd0bf }` rule, and `canvas.focus()` on load so keys work immediately (mouse clicks never paint the outline — `:focus-visible`, not `:focus`).
+- **Reduced motion (juice module).** Added `reduced()` = `matchMedia('(prefers-reduced-motion: reduce)').matches` (read LIVE; `typeof matchMedia` guard keeps the Node test VM safe → always false there). `activate()` skips `Q.shake`/`Q.slowmo` under reduce but KEEPS the conveyance: plate/alarm keep their shockwave rings, **trap falls back to a ring** so the shake-only beat isn't silent, gem keeps its confetti. `camera()` and `timeScale()` are also gated at the read chokepoint, so even an in-flight shake is pinned to `{0,0}` / no time dilation the instant the OS pref flips — no reload. There is no true parallax layer to gate (confirmed; the title gem/flicker are in place, not translating).
+- **Discoverable help (zero numerals).** The three debrief hints now name arrows/enter/esc; title & chronicle advertise "press a key".
+- **`WH._debug`** read-only handle added (never wired to input, no gameplay effect; `endRaid()` only trips the same raid-over path `stepRaid` would) so the browser verifier can drive/inspect the flow without idling a full night.
+- Line count **2080 → 2190** (< 2400 cap).
+
+**Verification evidence:**
+- `node tests/run-tests.mjs` → **ALL SUITES PASSED** (sim **31/0**, gossip **35** assertions, chronicle **21/0**, gem-steal **15/0**, outsmart **15/0**) — no sim regression (sim block byte-unchanged).
+- `node --check` via `new vm.Script` on all 3 inline blocks (967 / 886 / 311 lines): **all SYNTAX OK**.
+- Headless node probe (throwaway, deleted; mock `matchMedia`, drives the real `push`→`tick`→`activate` pipeline) **16/16**: motion-ON PLATE_TRIP → shake 13.3 + slow-mo 630 + 1 ring + `camera()` {-6.37,2.21} + `timeScale()` 0.35; motion-OFF PLATE_TRIP → shake 0 + slow-mo 0 + `camera()` {0,0} + `timeScale()` 1 but ring STILL spawned; motion-OFF TRAP falls back to a ring; motion-OFF GEM keeps 46 confetti; a **live** mid-shake pref flip pins `camera()` to {0,0}.
+- **game-verifier** (real headless Chromium 1228, Playwright; reduced-motion emulation live, not a fallback) → **PASS on all four gates**: (1) regression — 0 console errors / 0 pageerrors, title + vault render, night-1 raid with 6 thieves moving; (2) **keyboard-ONLY whisper completed end-to-end** — `endRaid()` → debrief, Enter fast-forwards anim → `pick-thief`, ArrowRight×3 moved `kThief` (dashed focus ring visible), Enter → `pick-type` (`chosen.thief="Brick"`), ArrowRight×2 moved `kType` 0→2 (radial highlight), Enter → `pick-loc`, arrows moved `kCell` (11,13)→(11,11) (teal focus box), Enter → **mode back to raid, night 1→2, whisperCount 0→1**; `Escape` on a fresh debrief returned to raid with **whisperCount unchanged**; (3) reduced-motion — default `{cam:{x:-5.977,y:5.389}, ts:0.35, reduced:false}` vs `emulateMedia reduce` `{cam:{x:0,y:0}, ts:1, reduced:true}`; (4) canvas focusable — `document.activeElement.id==='c'` (tabindex 0, focus-visible ring in every screenshot). Screenshots `/tmp/wh_1_title.png` … `/tmp/wh_7_reduced_context.png`.
+
+**Dirty working tree:** clean at commit time (only `src/index.html` was modified by the prior state; the pre-existing spec-doc dirt from earlier snapshots had already been resolved by commit `a4155a4`). This commit touches ONLY this iteration's files: `src/index.html`, `BACKLOG.md`, `docs/loop-log.md`.
+
+**Follow-ups filed:** none new. Noted for a later accessibility pass (out of scope here): the RAID-mode ledger is still hover/click-only (no keyboard way to cycle the pinned thief ledger); low value vs. the whisper flow the player acts through, but the natural next accessibility slice. Pre-existing open items unchanged: optional muted audio kit; night-1/gem balance confirmation; target-hysteresis (Ash nights 4–5); trust-tinted debrief slides.
+
+**Commit:** (this commit)
