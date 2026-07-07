@@ -140,3 +140,32 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. Still open: trust-tinted debrief slides via `conf` on the GOSSIP event (deferred above); pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering).
 
 **Commit:** 6daffce (loop-log hash finalized in the immediately following doc-only commit)
+
+---
+
+## 2026-07-06 — Chronicle: every line cites run-specific log/memory; two runs differ materially (CAP-8)
+
+**Item:** "Chronicle: every line references a run-specific logged token/event; two runs produce visibly different Chronicles."
+
+**Audit (concrete, per line):** `chronicle()` (juice IIFE, src/index.html) built its 5–8 lines from `first(log, TYPE)` events + `lieToken` lineage + memory-stream padding. Nine of the lines already carried run-specific slots (thief names, `placeName(cell)`), but **four were CANNED** — the text was byte-identical in every run, gated on a real event but citing no run datum: (1) the opener `'Six went in under the dark, and the entrance swallowed them whole.'`; (2) the alarm line `'Then the bells woke, and the job with them.'`; (3) the gem-survived closer `'The star kept its socket in the sanctum, night after night, and never knew our names.'` (the most-common run's final line); (4) the split-loot fallback `'The gang split what little they had…'`. Also a **live bug**: the opener's first-actor scan grabbed the `PLAN_SET 'seed'` marker (whose `thief` field is the string `'seed'`), so night-1 chronicles literally read *"seed led all six in…"*. And a structural gap surfaced under test: because night-1 is identically seeded across seeds and `lieToken` collapses to a stable early holder, two different seeds produced Chronicles differing by only **1 line** — failing "materially different".
+
+**Change (render-only — all edits inside the juice IIFE, OUTSIDE `<script id="sim">`; sim/gossip/determinism untouched):**
+- Every line is now emitted via `add(line, ref)`, where `ref` is the exact run-specific datum the line is anchored on (a logged thief name, the `placeName` of a logged cell, or a final-memory-token loc). `refs[]` ships on the chronicle result (drawn nowhere; used to machine-prove the property).
+- The 4 canned lines now cite run data: opener → the run's **first real thief actor** (bug fixed: `firstActor()` skips ids that don't resolve to a thief, dropping the `'seed'` marker); alarm → the **last plate-tripper** who armed the bells; gem-survived → a thief holding a **GEM_AT** belief (where they still swear it sleeps) else the last thief by name over `word(nights)` nights; fallback → loot-grab count as a word.
+- **Blame attribution strengthened via lineage:** the planted lie is found by `lieToken` and traced by **shared token `originId`** across streams; the propagation line now counts how many of six carried it to the last night (`word(believers)`).
+- **Run-variance guaranteed:** two ALWAYS-present closing lines are drawn from the **final memory streams** — the farthest-travelled rumor (max gossip hops) and the gang's divergent top beliefs ("X swears by …, Y by …, and no two recall the same vault") — kept ahead of the >8 overflow trim so they can never be dropped. These differ run-to-run even when the seeded night-1 events don't. Zero numerals throughout (spelled words + the pictorial moons/pips/gem outcome row, unchanged).
+- Exposed `placeName`/`word` on `WH.juice` for the test's non-circular vocabulary derivation. Line count **1976 → 1997** (< 2000 cap).
+
+**Test added (the two-runs-differ property, per interfaces.md extractor pattern):**
+- `tests/extract-full.mjs` — extends the shipped-block extractor to load BOTH the `<script id="sim">` block AND the id-less render/juice presentation block into one browserless VM (the presentation block has no DOM refs at module-init, so `chronicle`/`placeName`/`word` eval cleanly; `drawChronicle` is never called). Grades the SHIPPED chronicle builder, no drift.
+- `tests/chronicle.test.mjs` — drives two seeds through a full 5-night run to the Chronicle (mirroring the integrator loop; plants one seed-derived WHISPER lie per debrief so the blame/lineage lines fire), then asserts **(a)** 5–8 lines, every line contains its declared `ref` AND that `ref` is **independently re-derivable from THAT run's own eventLog + memory** (non-circular: the test rebuilds the name/place vocabulary itself), zero digits in the prose, no formerly-canned sentence survives, blame line present; **(b)** the two Chronicles differ by **≥3 lines**. Wired into `tests/run-tests.mjs`.
+
+**Verification evidence:**
+- `node tests/run-tests.mjs`: **ALL SUITES PASSED** — sim 31/0, gossip 35 assertions, **chronicle 21/0** (both seeds: 8 lines, refs anchored + in-vocab, zero digits, no canned line, blame present; two runs differ by 3 lines).
+- `node --check` (via `new vm.Script`) on all 3 extracted inline blocks (sim, render/juice, integrator): **all OK**.
+- 44-seed robustness sweep (11 runs plant NO whisper; includes gem-stolen early-exit paths): **0 throws, 0 lines out of [5,8], 0 unanchored lines, 0 refs outside the run vocabulary, 0 digit leaks, 44/44 distinct Chronicles.**
+- `game-verifier` (real Chromium via Playwright, `file://`): **PASS** — 0 console errors / 0 uncaught exceptions / 0 failed requests; title→click→raid with 6 thieves moving (3 distinct canvas frames over 10s). Chronicle rendered by driving the in-page `WH` modules to completion and calling `WH.juice.drawChronicle` onto the real canvas: both seeds 8 lines, `digitsInProse=[]` for both, `linesDiffer=3`, run-specific prose ("Vex swore hall B was a deathtrap…", "…swears by the whole vault, Silk by hall B…"); screenshot confirms the parchment scroll — small-caps "The Chronicle", 8 italic lines, and the pictorial outcome row (5 crescent moons | pips tally | whole teal gem for fate `safe`).
+
+**Follow-ups filed:** none new. Lines 1–4/6 of the Chronicle (night-1 events + the collapsed lie holder) are low-variance across *seed only* — run-variance is carried by the lie the player plants + the two memory-stream closing lines; acceptable and honest, but a future polish could vary the narrative core by later-night events. Pre-existing target-hysteresis follow-up (Ash nights 4–5) and the deferred trust-tinted debrief slides remain open.
+
+**Commit:** 2c91165 (loop-log hash finalized in the immediately following doc-only commit)
