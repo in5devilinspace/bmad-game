@@ -113,4 +113,4 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 
 **Follow-ups filed:** none new. Noted but intentionally not changed this iteration (documented as exempt above): the debrief token slide does not carry a three-state glow — it is a transfer/mutation animation, not a resting trust surface, and plumbing per-slide confidence would touch the sim-tested gossip block; if a future iteration wants trust-tinted slides it should add `conf` to the GOSSIP log event (L882) render-side only. Pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering) remains open.
 
-**Commit:** __PENDING__
+**Commit:** a142f94 (loop-log hash finalized in the immediately following doc-only commit)
