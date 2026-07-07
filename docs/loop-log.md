@@ -139,4 +139,4 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 
 **Follow-ups filed:** none new. Still open: trust-tinted debrief slides via `conf` on the GOSSIP event (deferred above); pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering).
 
-**Commit:** __PENDING__ (filled in the immediately following doc-only commit)
+**Commit:** 6daffce (loop-log hash finalized in the immediately following doc-only commit)
