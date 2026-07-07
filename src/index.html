@@ -40,7 +40,9 @@
   function inb(x, y) { return x >= 0 && x < W && y >= 0 && y < H; }
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   var DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-  var DANGER = { TRAP_AT: 1, ALARM_AT: 1, PLATE_AT: 1 };
+  var DANGER = { TRAP_AT: 1, ALARM_AT: 1, PLATE_AT: 1 };            // routing avoidance (all believed hazards)
+  var FLEE_DANGER = { TRAP_AT: 1, ALARM_AT: 1 };                    // hazards a thief FLEES/aborts for — plates are LOUD, not LETHAL (vault-map hazard table), so they never abort a run
+  var GEM_LEGEND = 0.95;   // "the legend of the star": by the late-night planning stages the gang carries a belief the gem sleeps in the sanctum (see emitRoutePlans) — the deep-heist threat the player must misdirect
 
   // ---- canonical tables (vault-map.md) --------------------------------------
   // order matters: hall-b before hall-a so the overlap column resolves to hall-b
@@ -270,7 +272,22 @@
   // A*-derived from the merged BeliefMap and seed it into the whole gang's streams,
   // so scoreOptions' follow-plan branch and the loyalty weight actually engage.
   function emitRoutePlans(game) {
-    var bel = game.beliefMap || mergeBelief(game.thieves), world = game.world;
+    var world = game.world;
+    // THE LEGEND OF THE STAR (core-stakes: the gem must become a real threat by nights 4-5).
+    // emitRoutePlans runs at each debrief, planning the NEXT night; game.night>=3 means we are
+    // planning night 4 or later. From then on the gang carries a firsthand-less GEM_AT belief at
+    // the true sanctum cell. It (a) shows in the hover ledger + belief ink (the player SEES the
+    // threat), and (b) is weighted x2 in the best-selection below, so on SOME late seeds it beats
+    // the outer-loot / phantom-gem beliefs and Moth's DANGER-IMMUNE ROUTE_PLAN commits the gang to
+    // the deep sanctum route — the lockpick then braves the corridor and cracks D3+D4. Whether it
+    // wins the plan (and whether Silk survives the run) varies per seed, so the gem falls on some
+    // late nights, not all. Gated <night 3 so nights 1-3 stay gem-safe (CAP-1 night-1 win intact).
+    if (game.night >= 3) {
+      for (var _li = 0; _li < game.thieves.length; _li++)
+        addToken(game, game.thieves[_li], mkToken(game, 'GEM_AT', { x: world.gem.x, y: world.gem.y }, { confidence: GEM_LEGEND, firsthand: false }));
+      game.beliefMap = mergeBelief(game.thieves);
+    }
+    var bel = game.beliefMap || mergeBelief(game.thieves);
     var best = null, bestW = -1, k;
     for (k in bel.byKey) {
       if (!bel.byKey.hasOwnProperty(k)) continue;
@@ -280,6 +297,22 @@
         if (wgt > bestW) { bestW = wgt; best = tk.loc; }
       }
     }
+    // A player's WHISPER is the loudest voice at the table: a whispered route target (GEM_AT/LOOT_AT)
+    // decisively steers Moth's plan, so the player can lure the gang ONTO the gem or OFF it (onto a decoy),
+    // overriding the autonomous legend and any gossip phantom. Scanned from raw memory so a merge tie can't
+    // mask the lie behind an equal-confidence firsthand belief at the same cell.
+    var wBest = null, wW = -1;
+    for (var _wi = 0; _wi < game.thieves.length; _wi++) {
+      var _wm = game.thieves[_wi].memory;
+      for (var _wj = 0; _wj < _wm.length; _wj++) {
+        var wt = _wm[_wj];
+        if (wt.source === 'WHISPER' && (wt.type === 'GEM_AT' || wt.type === 'LOOT_AT') && wt.loc && wt.loc.x != null && wt.confidence >= 0.15) {
+          var ww = wt.confidence * (wt.type === 'GEM_AT' ? 2 : 1);
+          if (ww > wW) { wW = ww; wBest = wt.loc; }
+        }
+      }
+    }
+    if (wBest) best = wBest;
     if (!best) best = world.gem;                                   // fall back to the true objective
     var planners = [];
     for (var i = 0; i < game.thieves.length; i++) if (abilityInfo(game.thieves[i].abilities).emitsRoutePlan) planners.push(game.thieves[i]);
@@ -340,13 +373,18 @@
   }
 
   // ---- decision scoring (weight dot-product + ability table; NO branches) ---
-  function dangerMap(thief) {
+  // types: which hazard classes to map (default all → routing avoidance). firsthandOnly:
+  // count only danger the thief has SEEN itself — used for the FLEE test so a committed
+  // thief won't abort over a mere RUMOR (an exaggerated region/wing danger it only heard).
+  function dangerMap(thief, types, firsthandOnly) {
+    types = types || DANGER;
     var m = {};
     function mark(x, y, conf) { var k = x + ',' + y; if (!m[k] || conf > m[k]) m[k] = conf; }
     function regionCells(r, conf) { for (var x = r.x0; x <= r.x1; x++) for (var y = r.y0; y <= r.y1; y++) mark(x, y, conf); }
     for (var i = 0; i < thief.memory.length; i++) {
       var t = thief.memory[i], loc = t.loc;
-      if (!DANGER[t.type] || t.confidence < 0.15 || loc == null) continue;
+      if (!types[t.type] || t.confidence < 0.15 || loc == null) continue;
+      if (firsthandOnly && !t.firsthand) continue;
       if (typeof loc === 'object' && loc.x != null) { mark(loc.x, loc.y, t.confidence); continue; }
       if (typeof loc === 'object' && loc.a && loc.b) { mark(loc.a.x, loc.a.y, t.confidence); mark(loc.b.x, loc.b.y, t.confidence); continue; }
       if (typeof loc === 'string') {
@@ -367,7 +405,7 @@
   function scoreOptions(world, thief, prng, state) {
     state = state || {}; prng = prng || function () { return 0; };
     var w = thief.weights, info = abilityInfo(thief.abilities);
-    var dm = dangerMap(thief), opts = [], i;
+    var dm = dangerMap(thief), fm = dangerMap(thief, FLEE_DANGER, true), opts = [], i;   // dm routes; fm (firsthand lethal only) decides flight
     // Routing danger is FEAR-SCALED: a low-fear thief (Ash) discounts believed hazards and will charge
     // through a phantom trap, while a coward (Nix) over-avoids. The raw dm still feeds the fear FEATURE
     // below (weighted by w.fear in the utility sum), so fear is applied once to scoring and once to routing.
@@ -390,7 +428,7 @@
     // survive / exit
     var ep = astar(world, thief.pos, world.exit, ctx) || [{ x: thief.pos.x, y: thief.pos.y }];
     opts.push({ goal: 'survive', target: { x: world.exit.x, y: world.exit.y }, path: ep, originId: null,
-      features: { greed: 0, fear: 0.6 + dangerNear(dm, thief.pos), loyalty: 0, credulity: 0 } });
+      features: { greed: 0, fear: 0.6 + dangerNear(fm, thief.pos), loyalty: 0, credulity: 0 } });   // flee spikes only near FIRSTHAND lethal danger
     // follow-plan — from ROUTE_PLAN tokens (Moth's seeds)
     for (i = 0; i < thief.memory.length; i++) {
       var rp = thief.memory[i];
@@ -464,6 +502,7 @@
       th.pos = { x: STARTS[i][0], y: STARTS[i][1] };
       th.state = 'raiding'; th.path = []; th.progress = 0; th.delib = 0; th.rescore = 0; th.carry = 0;
       th.facing = { x: 0, y: -1 }; th.options = []; th.pending = null; th.replanFlag = false; th.unlocking = null; th._fleeing = false;
+      th._planned = false; th.goalStack = ['reach-gem', 'survive', 'follow-plan', 'protect-bond'];   // fresh night → fresh plan: no stale-goal inertia carrying last night's 'survive' onto a new deep route
     }
     if (game.night === 1) seedNight1(game);
     game.raid = { timeMs: 0, durMs: 60000, alarmLevel: 0, alarmArmed: false, alarmTripped: false, alarmCountdown: 0, over: false, outcome: null, lootGrabbed: 0, gemStolen: false, unlocked: {} };
@@ -609,7 +648,7 @@
             if (curOpt && pick.goal !== curGoal && pick.score - curOpt.score < GOAL_HYSTERESIS) pick = curOpt;
           }
           th.pending = pick; th.delib = 300; th.rescore = 2000; th.replanFlag = false;
-          if (th.pending && th.pending.goal === 'survive' && dangerNear(dangerMap(th), th.pos) > 0) {   // winning option flipped to flee under danger
+          if (th.pending && th.pending.goal === 'survive' && dangerNear(dangerMap(th, FLEE_DANGER, true), th.pos) > 0) {   // flee only from FIRSTHAND lethal danger (not a plate / a rumor)
             if (!th._fleeing) { th._fleeing = true; log(game, 'FLEE', th.id, 'danger'); flagWitnesses(game, th.pos.x, th.pos.y, 6); }
           } else { th._fleeing = false; }
           continue;
@@ -1665,7 +1704,13 @@
     var memoL = [], memoR = [], tops = [], far = null, farH = null, best;
     for (t = 0; t < thieves.length; t++) {
       m = thieves[t].memory || []; best = null;
-      for (k = 0; k < m.length; k++) { if (m[k].loc == null) continue; var hh = (m[k].hops && m[k].hops.length) || 0; if (!far || hh > ((far.hops && far.hops.length) || 0)) { far = m[k]; farH = thieves[t]; } if (!best || (m[k].confidence || 0) > (best.confidence || 0)) best = m[k]; }
+      var gemC = (game && game.world && game.world.gem) || { x: -1, y: -1 };
+      for (k = 0; k < m.length; k++) {
+        if (m[k].loc == null) continue;
+        // skip the shared "legend of the star" (same GEM_AT@sanctum seeded into everyone): this line is
+        // the DIVERGENT-belief payoff ("no two recall the same vault") — a uniform legend isn't divergent.
+        if (m[k].type === 'GEM_AT' && !m[k].firsthand && m[k].loc.x === gemC.x && m[k].loc.y === gemC.y) continue;
+        var hh = (m[k].hops && m[k].hops.length) || 0; if (!far || hh > ((far.hops && far.hops.length) || 0)) { far = m[k]; farH = thieves[t]; } if (!best || (m[k].confidence || 0) > (best.confidence || 0)) best = m[k]; }
       tops[t] = best;
     }
     if (farH) { memoL.push(farH.name + ' still carries a rumor of ' + placeName(far.loc) + ', worn thin by every mouth it crossed.'); memoR.push(farH.name); }
@@ -1879,6 +1924,11 @@
 
   function finishDebrief() {
     game.debrief = null; debrief = null;
+    // Re-emit Moth's route AFTER any whisper so the player's lie can genuinely lure the gang
+    // ONTO or OFF the gem this coming night (a whispered GEM_AT retargets the plan; a whispered
+    // loot elsewhere can pull it off). Idempotent when the player held their tongue.
+    game.beliefMap = WH.sim.mergeBelief(game.thieves);
+    WH.sim.emitRoutePlans(game);
     WH.sim.beginNight(game);          // next night
     mode = 'raid';
   }

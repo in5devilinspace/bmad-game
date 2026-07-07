@@ -190,3 +190,34 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Finding filed (HIGH):** the same verifier sweep (300 seeds × 5 nights = 1500 raids) logged **GEM_GRAB: 0** — the gem is effectively unstealable in autonomous play, so the player never has anything real to defend. Filed as the new top-priority backlog item (core-stakes sim/design issue, independent of this render-only juice pass).
 
 **Commit:** (this commit)
+
+---
+
+## 2026-07-06 — Core stakes: the gem is now genuinely stealable on nights 4–5 (GEM_GRAB 0% → ~13%)
+
+**Item:** "HIGH — Core stakes: the gem is effectively unstealable, so the player never has anything real to defend." (300-seed × 5-night verifier sweep = 1500 raids logged **GEM_GRAB: 0**.)
+
+**Root cause (found by sim probes, not guessed — a THREE-part depth-gating deadlock):**
+1. **No belief ever pointed at the true gem cell (11,0).** `perceive` mints GEM_AT only when a thief stands on the gem — circular behind the locked doors — and the sole other source, the `LOOT_AT→GEM_AT` type-slip, *keeps the loot cell*, so every "gem belief" was a phantom at an outer storeroom (probe: 162/300 seeds formed a GEM_AT belief; **all** at outer cells, none in the inner wing). Consequence: `D3/D4 unlocked 0/300`, deepest tier reached 0/300, min y ever = 9 — **no thief ever crossed the plate row**, and Moth's ROUTE_PLAN always targeted outer loot.
+2. **Even given a gem belief, `reach-gem` was unwinnable.** By nights 4–5, exaggerated region/wing danger *rumors* (`PLATE_AT@hall-b`, `TRAP_AT@central`) expand in `dangerMap` to poison the ENTIRE hall-b corridor — the only route to the sanctum — so `reach-gem` scored ≈ −4 (fear feature −4.16) and always lost to the danger-immune `follow-plan`/`survive`.
+3. **The lockpick never committed a deep route.** `beginNight` reset neither `_planned` nor `goalStack`, so Silk entered each night carrying the prior night's `survive` goal; commitment inertia (0.25) kept it because the danger-immune follow-plan beat survive by only 0.03. And when Silk *did* start up, tripping the mandatory plate at y9 spiked `survive` (danger) and it fled before reaching D3.
+
+**Change (sim/design; all inside `<script id="sim">` except the debrief re-emit):**
+- **"The legend of the star"** (`emitRoutePlans`, `game.night>=3`): the gang now carries a firsthand-less `GEM_AT(11,0)` belief at the true sanctum cell (conf `GEM_LEGEND=0.95`) once planning night 4+. It shows in the hover ledger + belief ink (the player SEES the threat and the plan-line climbing to the sanctum), and — weighted ×2 in Moth's route selection — beats the outer-loot/phantom beliefs on SOME late seeds, so his **danger-immune** ROUTE_PLAN commits Silk to the deep route. Gated `<night 3` so nights 1–3 stay gem-safe.
+- **Flight is now firsthand-only.** New `FLEE_DANGER = {TRAP_AT, ALARM_AT}` + `dangerMap(thief, types, firsthandOnly)`: the survive/flee test uses a map of only the *lethal* danger a thief has *seen itself*. Pressure plates (loud, not lethal — vault-map hazard table) and second-hand rumors no longer abort a run; they still shape cautious *routing* (`dm` unchanged). So a committed heister braves the plate row while the gang still bends around believed traps.
+- **Fresh plan each night** (`beginNight` resets `_planned=false` + `goalStack` to default) — no stale `survive` carried onto a new deep route.
+- **Whisper override** (`emitRoutePlans` scans raw memory for a `source==='WHISPER'` route target) + **re-emit after the whisper** (`finishDebrief`): the player's planted lie decisively steers Moth's plan, luring the gang ONTO the gem or OFF it onto a decoy — the defend-the-gem verb the SPEC promises.
+- **Chronicle guard:** the "no two recall the same vault" divergent-belief line now skips the uniformly-shared legend (it isn't a *divergent* memory), restoring two-runs-differ ≥ 3.
+
+**Preserved invariants:** night-1 outer-loot win still guaranteed + gem never stolen night 1; determinism (same seed → same steal-night); policy-equivalence under uniform weights (all six identical `fm` from identical memory); gem still unreachable without lockpick and before night 4.
+
+**Verification evidence:**
+- `node tests/run-tests.mjs` → **ALL SUITES PASSED**: sim **31/0**, gossip **35**, chronicle **21/0** (two-runs-differ back to 3), new **gem-steal 15/0**.
+- `node --check` (via `new vm.Script`) on all 3 extracted inline scripts → OK.
+- **Before/after GEM_GRAB rate** (shipped node seed-sweep to night 5, no whisper): **before 0/1500 (0%)** → **after 6/48 (13%)**, byNight `{4:5, 5:1}`, **night-1 steals 0**. `tests/gem-steal.test.mjs` asserts (seeds 0–23): 5/24 steal, all nights 4–5, 0 early, determinism holds, and the whisper lures the plan ONTO the gem (before the legend) and OFF it onto a decoy (against the legend).
+- `game-verifier` (real headless Chromium 1228, playwright-core, `file://`) → **PASS**: **0 console errors / 0 uncaught pageerrors / 0 failed network requests**; canvas 1280×800 renders the full vault (cyan gem in the locked sanctum, gold loot, star/bell tokens, plan-lines, six labelled thieves, night-moon); 6/6 thieves move each frame (sampled fanning out from the entry); flow title→raid→debrief(gossip)→whisper UI→**night 2** captured; screenshots all distinct/non-blank. Independent node seed-sweep (seeds 0–40) of the shipped sim: **gem stolen 6/41 (14.6%)**, byNight `{4:5, 5:1}`, **night-1 steals 0**, determinism reproduced; whisper lures the plan onto the gem and a decoy pulls it off. `node tests/run-tests.mjs` → ALL SUITES PASSED (sim 31, gossip 35, chronicle 21, gem-steal 15, 0 failures).
+- Line count 2003 → **2053** (< 2400 cap).
+
+**Follow-ups filed:** none new. The autonomous gem plan usually wins the late-night route (~80% of nights 4–5); the ~13% steal rate is gated downstream by the lockpick threading the upper-hall-b trap and cracking both doors inside 60s (timeout filters the rest) — a legible challenge. Pre-existing target-hysteresis follow-up (Ash nights 4–5) and trust-tinted debrief slides remain open.
+
+**Commit:** (this commit)
