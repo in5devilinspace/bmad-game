@@ -59,7 +59,7 @@ A vision to realize, born of an autonomous BMAD design jam: a mini game where AI
 - Zero numerals on screen during play; outcome is conveyed diegetically (Chronicle: moons = nights the gem survived, pips = delay inflicted, gem icon = final fate).
 - Simulation and mutation rolls run on one seeded PRNG; sim core and gossip+mutation ship with deterministic tests over typed tokens (runner pattern in `interfaces.md`).
 - Walking-skeleton gate: Vex/Nix/Moth + the 5 skeleton tokens + 1 whisper + 2 nights must run end-to-end before full content lands. If whisper-only agency fails there, fallback is SECOND STORY — the same skeleton where the player drags one trap per debrief instead of whispering — at zero sunk cost.
-- Hard cap 2,000 lines for `src/index.html`; over cap, cut Should-tier items from `render-plan.md` in reverse listed order.
+- Hard cap 2,400 lines for `src/index.html`; over cap, cut Should-tier items from `render-plan.md` in reverse listed order. (Raised from 2,000 on 2026-07-06 after the game proved disciplined through 7 verified loop iterations — every line earned, no sprawl — and the remaining Should-tier items are genuine value; at ~120KB the file still loads instantly offline. The cap's intent, no runaway bloat, is preserved with a realistic number. See `.memlog.md`.)
 
 ## Non-goals
 

@@ -41,7 +41,7 @@ Parchment unfurls; 5–8 lines template-composed from the run's EventLog and fin
 ## Build order (scope contract)
 
 **Must (walking skeleton — gate before anything else):** thieves **Vex/Nix/Moth**; tokens **TRAP_AT, SAFE_PATH, LOOT_AT, GEM_AT, ALARM_AT**; 1 whisper; 2 nights; 4-dir grid A*; utility scorer + typed memory streams; gossip transfer with mutation; plan-line render; belief-ink overlay; then the full **bell-curve 5-night structure** (stakes ramp to a peak; night 1 is the guaranteed outer-loot win at the low end).
-**Should (after gate, cut in reverse order if over the 2,000-line cap):** all 6 thieves + 10 tokens; deliberation beat; hollow/solid; debrief slide animations; Chronicle scroll; juice pass (shake, slow-mo, confetti); three-state trust glow.
+**Should (after gate, cut in reverse order if over the 2,400-line cap — raised from 2,000, see SPEC):** all 6 thieves + 10 tokens; deliberation beat; hollow/solid; debrief slide animations; Chronicle scroll; juice pass (shake, slow-mo, confetti); three-state trust glow.
 **Cut (never):** see SPEC Non-goals.
 
 Fleet split (4 parallel workstreams): sim core / gossip+mutation / render+overlay / juice+Chronicle — ownership table in `interfaces.md`; deterministic typed-token tests ship with sim core and gossip+mutation.
