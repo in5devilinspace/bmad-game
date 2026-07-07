@@ -91,3 +91,26 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. Pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering) remains open.
 
 **Commit:** 00c000b (loop-log hash finalized in the immediately following doc-only commit)
+
+---
+
+## 2026-07-06 — Three-state trust glow now covers the in-world belief-ink overlay; play HUD confirmed numeral-free
+
+**Item:** "Three-state trust glow (glow/neutral/grey) applied to every rendered token; confirm no numerals leak on the play HUD."
+
+**Token-render audit (all 8 sites where a glyph can depict a belief token):** The canonical trust display — the hover/pinned ledger (`trustState` L1187; ring+shadow+grey-tint L1200-1206) — was already exactly three-state and correct. Seven of the eight sites are either correct or legitimately exempt: the truth layer (traps/plates/alarms/loot/gem/doors from `game.world`, ground truth with no confidence), the overhead active-goal glyph (a goal indicator, not a token), the pinned lineage hop-chain (one token's mutation history, `*`-marked — not a multi-token trust display), the debrief token slide (a transfer/mutation animation whose epistemic is firsthand-solid→hollow-bud + mutation hue), the whisper radial picker (a type-selection menu, not instantiated tokens), and the transient in-play FX bubbles. **One genuine defect:** the in-world **belief-ink overlay** (`drawBeliefInk`, L1074-1085) rendered token confidence as a **continuous** ramp — ink alpha `0.10 + 0.22*conf` and glyph alpha `0.5 + 0.5*conf` — i.e. a continuous trust state, the exact thing the item flags. It matched "any in-world token drawing" and was the only live confidence display in the game not bucketed to three states.
+
+**Change (render-only — inside the render IIFE, OUTSIDE `<script id="sim">`, so no sim/gossip/determinism surface touched):**
+- `drawBeliefInk` (L1074-1085): confidence now flows through the **shared** `trustState(conf)` (buckets at 0.66/0.33). Three discrete ink densities (glow 0.30 / neutral 0.19 / grey 0.10) replace the continuous ramp; glyph alpha becomes three discrete levels (1 / 0.8 / 0.5); the grey state tints to `#96a0af` (the same neutral grey the ledger uses); the glow state gets a `shadowBlur` halo — the same "glow" cue the ledger ring uses. Every confidence display in the game is now EXACTLY three states, keyed off one function.
+- No numerals added; closed vocabulary honored (pure geometry + alpha buckets). Line count 1966 → **1972** (< 2000 cap).
+
+**Numeral audit of the entire play HUD (title/raid/debrief; Chronicle excluded by contract):** Exhaustively enumerated all 13 `fillText`/`strokeText` call sites — every one draws letters (thief initials V/S/B/N/A/M, token-type labels like "loot at"/"trap at (heard)", the word "lineage"), a `*` mutation mark, or fixed prose (title/subtitle/hints). **No site emits a numeric variable as digits.** The night indicator is `drawNightMoons` (crescent `ctx.arc` fills, zero digits); no score/timer/loot-count text call site exists on the raid HUD; the Chronicle outcome row is pictorial (moons via `drawMoon`, pips as rects, gem-fate icon). Confirmed at runtime by wrapping `fillText`/`strokeText` and driving title→raid→debrief: `DIGIT_LEAKS = []`.
+
+**Verification evidence:**
+- `node tests/run-tests.mjs`: **ALL SUITES PASSED — shipped `<script id="sim">` verified** (sim 31 passed/0 failed; gossip 35 assertions). No sim/gossip regression — the change is outside the sim block.
+- `node` syntax check (`new vm.Script`) on all 3 inline `<script>` blocks (928 / 823 / 198 lines): **all SYNTAX OK** (edited render block is in the 823-line block).
+- `game-verifier` (Playwright/Chromium `chromium-1228`, `file://`): **PASS** on all 3 sections. (1) 0 console errors / 0 uncaught exceptions / 0 failed requests; 6 thieves move (6/6 changed cells over ~2s); title→raid→whisper-debrief reached. (2) `WH.render.trustState` at 0.8/0.66/0.5/0.33/0.2 → **['glow','glow','neutral','neutral','grey']** (exact); `drawGlyph` three-state pixel test **glow 2210 lit px (alphaSum 218,415) vs neutral 655 (109,736) vs grey 621 (68,853)** — all three visibly distinct; live belief-ink overlay renders the three-state densities + glow halo; hover/pinned ledger draws a trust ring per token. (3) **`DIGIT_LEAKS = []`** across title/raid/debrief — complete drawn-string set is letters/labels/`*`/prose only; night = crescent arcs, no numeric night string; no raid score/timer/loot digit.
+
+**Follow-ups filed:** none new. Noted but intentionally not changed this iteration (documented as exempt above): the debrief token slide does not carry a three-state glow — it is a transfer/mutation animation, not a resting trust surface, and plumbing per-slide confidence would touch the sim-tested gossip block; if a future iteration wants trust-tinted slides it should add `conf` to the GOSSIP log event (L882) render-side only. Pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering) remains open.
+
+**Commit:** __PENDING__

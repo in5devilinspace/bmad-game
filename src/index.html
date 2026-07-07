@@ -1076,10 +1076,16 @@
     function holder(id) { for (var i = 0; i < thieves.length; i++) if (thieves[i].id === id || thieves[i].name === id) return thieves[i]; return null; }
     for (var i = 0; i < es.length; i++) {
       var e = es[i], tok = e.token || e, col = thiefColor(holder(e.holderId != null ? e.holderId : tok.source) || {}), cells = locCells(tok.loc);
-      var conf = tok.confidence == null ? 0.6 : tok.confidence, a = 0.10 + 0.22 * conf;
-      ctx.save(); ctx.fillStyle = hexA(col, a * 0.5); ctx.strokeStyle = hexA(col, a);
+      var conf = tok.confidence == null ? 0.6 : tok.confidence, st = trustState(conf); // EXACTLY three states (0.66/0.33 buckets) — no continuous confidence ramp
+      var inkA = st === 'glow' ? 0.30 : st === 'neutral' ? 0.19 : 0.10, icol = st === 'grey' ? '#96a0af' : col; // grey belief tints to the neutral grey (matches the ledger)
+      ctx.save(); ctx.fillStyle = hexA(icol, inkA * 0.5); ctx.strokeStyle = hexA(icol, inkA);
       for (var j = 0; j < cells.length; j++) { var c = cells[j]; sketchFill(ctx, cam.ox + c.x * cam.cell, cam.oy + c.y * cam.cell, cam.cell); }
-      var mid = cells[Math.floor(cells.length / 2)]; if (mid) { var p = cellToPx(cam, mid.x, mid.y); drawGlyph(ctx, tok.type, p.x, p.y, cam.cell * 0.33, { solid: false, color: col, alpha: 0.5 + 0.5 * conf }); }
+      var mid = cells[Math.floor(cells.length / 2)]; if (mid) {
+        var p = cellToPx(cam, mid.x, mid.y);
+        if (st === 'glow') { ctx.shadowColor = col; ctx.shadowBlur = 10; } else ctx.shadowBlur = 0; // glow = the same halo cue as the ledger ring
+        drawGlyph(ctx, tok.type, p.x, p.y, cam.cell * 0.33, { solid: false, color: icol, alpha: st === 'grey' ? 0.5 : st === 'neutral' ? 0.8 : 1 });
+        ctx.shadowBlur = 0;
+      }
       ctx.restore();
     }
   }
