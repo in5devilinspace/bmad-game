@@ -1351,7 +1351,7 @@
     return {
       clock: 0, lastDrama: -1e9, lastDramaAt: -1e9,
       pending: [], pendBub: [], bubbles: [],
-      rings: [], confetti: [], shake: 0, slowmo: 0,
+      rings: [], confetti: [], shake: 0, slowmo: 0, cam: { x: 0, y: 0 },
       cursor: 0, chron: null
     };
   }
@@ -1466,6 +1466,9 @@
     }
     // decay
     Q.shake *= Math.pow(0.0025, dt / 1000); if (Q.shake < 0.4) Q.shake = 0;
+    // resolve the frame's screenshake offset ONCE so the scene, the fx rings/confetti and the speech
+    // bubbles all shake by the SAME vector (each camera() call used to re-randomise -> fx detached from vault)
+    Q.cam = Q.shake > 0 ? { x: (rnd() - 0.5) * Q.shake, y: (rnd() - 0.5) * Q.shake } : { x: 0, y: 0 };
     if (Q.slowmo > 0) Q.slowmo -= dt;
     // rings
     for (var i = Q.rings.length - 1; i >= 0; i--) {
@@ -1490,7 +1493,7 @@
       case 'armed': spawnRings(c, 1, '#ffcf6b'); break;
       case 'alarm': Q.shake = Math.max(Q.shake, 11); spawnRings(c, 3, '#ff5b5b'); break;
       case 'loot': spawnConfetti(c, 20); break;
-      case 'gem': Q.shake = Math.max(Q.shake, 7); spawnConfetti(c, 46); break;
+      case 'gem': Q.slowmo = SLOWMO_MS; Q.shake = Math.max(Q.shake, 7); spawnConfetti(c, 46); break;   // heist climax: slow-mo + confetti burst
     }
   }
   function spawnRings(c, n, color) {
@@ -1508,10 +1511,7 @@
   }
 
   // ---- draw: layer 7 fx --------------------------------------------------
-  function camera() {
-    if (Q.shake <= 0) return { x: 0, y: 0 };
-    return { x: (rnd() - 0.5) * Q.shake, y: (rnd() - 0.5) * Q.shake };
-  }
+  function camera() { return Q.cam || { x: 0, y: 0 }; }   // cached per-frame in tick() so scene + fx shake in lockstep
   function timeScale() { return Q.slowmo > 0 ? 0.35 : 1; }
   function bubbleCount() { return Q.bubbles.length; }
 
@@ -1802,7 +1802,8 @@
 
   var game = null, mode = 'title', seed = 0;
   var titleStart = performance.now(), chronStart = 0, last = performance.now();
-  var debrief = null;
+  var debrief = null, raidCoda = 0;
+  var GEM_CODA_MS = 1400;   // extra beat held on a gem heist so its confetti + slow-mo land before the Chronicle
   var hoverThief = null, pinnedThief = null, mouse = { x: 0, y: 0 };
 
   var SEATING = WH.render.SEATING;
@@ -1827,7 +1828,7 @@
     game = WH.sim.newGame(seed);
     WH.juice.reset();
     WH.sim.beginNight(game);          // night 1 (seeded outer-loot win)
-    pinnedThief = null; hoverThief = null;
+    pinnedThief = null; hoverThief = null; raidCoda = 0;
     mode = 'raid';
   }
 
@@ -1967,7 +1968,12 @@
       var show = pinnedThief || hoverThief;
       if (show) WH.render.ledger(ctx, show, pinnedThief ? lineageTok(pinnedThief) : null);
       drawNightMoons();
-      if (game.raid.over) endRaidNow();
+      // A gem grab ends the raid the same frame it fires, so its confetti/slow-mo would never be drawn.
+      // Hold the frozen scene one dramatic beat, still ticking the fx layer, before the Chronicle.
+      if (game.raid.over) {
+        if (game.raid.gemStolen && raidCoda < GEM_CODA_MS) raidCoda += dt;
+        else { raidCoda = 0; endRaidNow(); }
+      }
     } else if (mode === 'debrief') {
       debrief.clock += dt;
       var allDone = true, BG = debrief.beatGap;
