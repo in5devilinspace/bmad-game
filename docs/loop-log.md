@@ -114,3 +114,29 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. Noted but intentionally not changed this iteration (documented as exempt above): the debrief token slide does not carry a three-state glow — it is a transfer/mutation animation, not a resting trust surface, and plumbing per-slide confidence would touch the sim-tested gossip block; if a future iteration wants trust-tinted slides it should add `conf` to the GOSSIP log event (L882) render-side only. Pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering) remains open.
 
 **Commit:** a142f94 (loop-log hash finalized in the immediately following doc-only commit)
+
+---
+
+## 2026-07-06 — Debrief token-slide now reads as three scheduler-paced beats, not a per-index trickle
+
+**Item:** "Debrief token-slide animation paced into exactly three readable beats by the beat scheduler."
+
+**Finding (a raw timer, not the scheduler):** `startDebrief` built one slide per emitted GOSSIP event and staggered each by `_start: si * 150` ms; the per-frame update advanced `sl.t = clamp((clock - _start)/650)`. With ~24 gossips a full debrief this meant 24 tokens starting 150ms apart and each traveling 650ms — a continuous ~4.2s smear with no rhythm, the opposite of the render-plan Debrief stage contract ("The beat scheduler paces the exchange into **three readable beats**"). The pacing was a private per-index timer that never touched, or obeyed the cadence of, the beat scheduler (`GAP = 1500`, one dramatic event per 1.5s; interfaces.md, presentation-only).
+
+**Change (presentation-only — all three edits live OUTSIDE `<script id="sim">`, so no sim/gossip/determinism/vocabulary surface touched; the GOSSIP log event was NOT modified):**
+- **Export the scheduler's GAP** from the juice module (`root.WH.juice = { … GAP: GAP, … }`) so the debrief's beat cadence is sourced from the actual beat-scheduler constant, not a duplicated magic number.
+- **`startDebrief`:** each slide now carries a `beat` field (0/1/2) instead of `_start`. After collecting the GOSSIP slides in arrival order, partition into exactly three contiguous waves: `per = max(1, ceil(N/3))`, `beat = min(2, floor(s/per))`. GOSSIP events arrive grouped by ring-adjacent pair (`runDebrief` delivers a→b then b→a per pair, in ring order), so each contiguous third is a coherent "these neighbors are trading now" wave a viewer can follow. Stashed `debrief.beatGap = WH.juice.GAP || 1500`.
+- **Per-frame update:** a slide launches when its beat is released — effective start `= sl.beat * BG` (BG = the scheduler GAP), travel unchanged at ~650ms. Three beats therefore fire at 0 / 1500 / 3000 ms, each wave landing (~700ms) inside the ~850ms quiet gap before the next launches — three legible pulses. `_start`/`si*150` removed. The `allDone`/`clock>500` whisper-transition and the click fast-forward (`clock = 1e9`) still work (huge clock ⇒ all `t→1`).
+- Whisper UI flow after the slides and the debrief→next-night progression are untouched. No numerals added. Line count 1972 → **1976** (< 2000 cap).
+
+**Scope decision (trust-tint deliberately deferred):** the filed follow-up to add `conf` to the GOSSIP log event (~L882) and trust-tint the sliding tokens was left out. It touches the sim-tested gossip log line (higher risk, must re-verify tested code) and is orthogonal to the pacing item; the prior iteration already ruled the debrief slide a "transfer/mutation animation, not a resting trust surface" — so omitting it keeps this iteration to one low-risk, presentation-only change. Follow-up remains open for a future iteration if trust-tinted slides are wanted.
+
+**Verification evidence:**
+- `node tests/run-tests.mjs`: **ALL SUITES PASSED — shipped `<script id="sim">` verified** (sim 31 passed/0 failed; gossip 35 assertions). No sim/gossip regression — the GOSSIP event and the whole sim block are byte-unchanged.
+- `node --check` (via `new vm.Script`) on all 3 extracted inline `<script>` blocks (sim+gossip 927 / render+juice 822 / integrator 201 lines): **all SYNTAX OK** (the two edited blocks are render+juice and integrator).
+- Standalone partition probe: N∈{24,20,18,12,7,3} → exactly **3** beats at distinct starts **{0,1500,3000}ms**, balanced counts (24→8/8/8); sparse N<3 degrades gracefully to fewer waves (harmless, real debriefs emit ~9–24 gossips).
+- `game-verifier` (real Google Chrome via `playwright-core`, `file://`): **PASS** on all checks. 0 console errors / 0 uncaught exceptions / 0 failed requests; canvas renders every phase; click→raid with 6 thieves in genuine motion (all 6 moved over a 2.1s natural-pace sample). Reached debrief (`outer-loot`, 24 slides). **Three-beat structure:** every slide `beat ∈ {0,1,2}`, `distinctBeats=[0,1,2]`, **24 = 8/8/8**, no `_start` key. **Three temporal waves** (polled `game.debrief.slides[].t` every ~170ms, no clicks): onsets **beat0 @ 2ms, beat1 @ 1567ms, beat2 @ 3116ms** → gaps **~1.565s / ~1.549s ≈ GAP**, non-overlapping (each beat reaches t=1 before the next begins). Mid-debrief screenshot shows tokens in flight between seats on the ring. **Flow preserved:** whisper phase reached with hint; "hold your tongue" (Space) → night 1→2; full cycle repeats to night 3 (24 slides / 8-8-8 again). Screenshots `/tmp/wh_0{1..4}_*.png`.
+
+**Follow-ups filed:** none new. Still open: trust-tinted debrief slides via `conf` on the GOSSIP event (deferred above); pre-existing target-hysteresis follow-up (Ash nights 4–5 same-goal loot dithering).
+
+**Commit:** __PENDING__ (filled in the immediately following doc-only commit)

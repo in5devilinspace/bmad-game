@@ -1759,7 +1759,7 @@
   function reset() { Q = fresh(); }
 
   root.WH.juice = {
-    push: push, sync: sync, tick: tick, drawFx: drawFx,
+    push: push, sync: sync, tick: tick, drawFx: drawFx, GAP: GAP,
     camera: camera, timeScale: timeScale, bubbleCount: bubbleCount, reset: reset,
     chronicle: chronicle, drawChronicle: drawChronicle, titleScreen: titleScreen,
     // exposed for tests / debugging
@@ -1839,16 +1839,19 @@
     WH.gossip.runDebrief(game);
     game.beliefMap = WH.sim.mergeBelief(game.thieves);   // re-merge after memory mutated
     WH.sim.emitRoutePlans(game);                         // Moth seeds ROUTE_PLAN tokens (token #9)
-    var slides = [], si = 0;
+    var slides = [];
     for (var i = pre; i < game.eventLog.length; i++) {
       var e = game.eventLog[i];
-      if (e.type === 'GOSSIP') {
-        slides.push({ from: e.from, to: e.to, type: e.tokType || 'TRAP_AT', mutation: (e.mutation && e.mutation !== 'faithful') ? { type: e.tokType } : null, firsthand: false, t: 0, _start: si * 150 });
-        si++;
-      }
+      if (e.type === 'GOSSIP') slides.push({ from: e.from, to: e.to, type: e.tokType || 'TRAP_AT', mutation: (e.mutation && e.mutation !== 'faithful') ? { type: e.tokType } : null, firsthand: false, t: 0, beat: 0 });
     }
+    // Pace the exchange into exactly THREE readable beats (render-plan Debrief stage): the swaps are
+    // released one wave per beat-scheduler GAP (the "one dramatic event per 1.5s" cap, interfaces.md)
+    // instead of a raw per-index trickle. GOSSIP events arrive grouped by ring-adjacent pair, so each
+    // contiguous third is a coherent "these neighbors are trading now" wave a viewer can follow.
+    var NBEATS = 3, per = Math.max(1, Math.ceil(slides.length / NBEATS));
+    for (var s = 0; s < slides.length; s++) slides[s].beat = Math.min(NBEATS - 1, Math.floor(s / per));
     game.debrief = { slides: slides };
-    debrief = { slides: slides, clock: 0, phase: 'anim', sub: 'pick-thief', chosenThief: null, chosenType: null, picker: null, mini: null };
+    debrief = { slides: slides, clock: 0, beatGap: WH.juice.GAP || 1500, phase: 'anim', sub: 'pick-thief', chosenThief: null, chosenType: null, picker: null, mini: null };
     mode = 'debrief';                            // enter the interactive debrief scene
   }
 
@@ -1946,8 +1949,9 @@
       if (game.raid.over) endRaidNow();
     } else if (mode === 'debrief') {
       debrief.clock += dt;
-      var allDone = true;
-      for (var i = 0; i < debrief.slides.length; i++) { var sl = debrief.slides[i]; sl.t = Math.max(0, Math.min(1, (debrief.clock - sl._start) / 650)); if (sl.t < 1) allDone = false; }
+      var allDone = true, BG = debrief.beatGap;
+      // each slide launches when its beat is released (beat * GAP); the three beats read as three waves
+      for (var i = 0; i < debrief.slides.length; i++) { var sl = debrief.slides[i]; sl.t = Math.max(0, Math.min(1, (debrief.clock - sl.beat * BG) / 650)); if (sl.t < 1) allDone = false; }
       if (debrief.phase === 'anim' && (allDone || debrief.clock >= 1e9) && debrief.clock > 500) debrief.phase = 'whisper';
       game.debrief.picker = (debrief.phase === 'whisper' && debrief.sub === 'pick-type') ? debrief.picker : null;
       game.debrief.mini = (debrief.phase === 'whisper' && debrief.sub === 'pick-loc') ? debrief.mini : null;
