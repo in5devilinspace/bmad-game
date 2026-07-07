@@ -1613,57 +1613,77 @@
     return null;
   }
 
+  // CAP-8: assembled PURELY from this run's EventLog + final memory streams; add(line,ref) records
+  // the run-specific datum (logged thief name / place-name) each line is anchored on — refs[i] proves it.
   function chronicle(game) {
     if (Q.chron && Q.chron._for === game) return Q.chron;
-    var log = evts(game), lines = [], e;
-
+    var log = evts(game), thieves = (game && game.thieves) || [], lines = [], refs = [], e, i, t, k, m;
+    function add(line, ref) { lines.push(line); refs.push(ref); }
+    // first logged event whose thief resolves to a REAL thief (skips the 'seed' PLAN_SET marker)
+    function firstActor() { for (var j = 0; j < log.length; j++) { var id = log[j].thief; if (id && thiefById(game, id)) return id; } return null; }
+    function anyName(fallback) { var a = firstActor(); return a ? nameOf(game, a) : (((thieves[0] || {}).name) || fallback); }
+    var nights = Math.max(count(log, 'NIGHT_END'), count(log, 'NIGHT_START'));
+    // opener — cite the thief who logged the run's first deed (run-specific, not a canned line)
     e = first(log, 'NIGHT_START');
-    if (e) lines.push('Six went in under the dark, and the entrance swallowed them whole.');
-
+    if (e) { var lead = anyName('The gang'); add(lead + ' led all six in under the dark, and the vault swallowed them whole.', lead); }
     e = first(log, 'LOOT_GRAB');
-    if (e) lines.push(nameOf(game, e.thief) + ' came away heavy from ' + placeName(e.cell) + '.');
-
+    if (e) add(nameOf(game, e.thief) + ' came away heavy from ' + placeName(e.cell) + '.', placeName(e.cell));
     e = first(log, 'TRAP_TRIP');
-    if (e) lines.push(nameOf(game, e.thief) + ' found the spikes of ' + placeName(e.cell) + ' the hard way, and limped for the door.');
-
+    if (e) add(nameOf(game, e.thief) + ' found the spikes of ' + placeName(e.cell) + ' the hard way, and limped for the door.', placeName(e.cell));
     e = first(log, 'PLATE_TRIP');
-    if (e) lines.push('A loose plate in ' + placeName(e.cell) + ' spoke ' + nameOf(game, e.thief) + '\'s name to the whole house.');
-
-    if (count(log, 'ALARM_TRIPPED')) lines.push('Then the bells woke, and the job with them.');
-
-    // blame line via token lineage (the planted lie)
+    if (e) add('A loose plate in ' + placeName(e.cell) + ' spoke ' + nameOf(game, e.thief) + '\'s name to the whole house.', nameOf(game, e.thief));
+    // alarm — cite the last plate-tripper (the plate that armed the bells), not a canned line
+    if (count(log, 'ALARM_TRIPPED')) {
+      var lp = null; for (i = log.length - 1; i >= 0; i--) if (log[i].type === 'PLATE_TRIP') { lp = log[i]; break; }
+      var blamer = lp ? nameOf(game, lp.thief) : anyName('someone');
+      add('By the time ' + blamer + ' woke the bells, the whole job was running for the dark.', blamer);
+    }
+    // blame via token lineage: find the planted lie still held, trace it by shared originId
     var lie = lieToken(game);
     if (lie) {
-      lines.push(lie.holder.name + ' swore ' + placeName(lie.tok.loc) + ' was ' +
-        epithetFor(lie.tok) + '. It was bare stone. That whisper is why we are still poor.');
-      // propagation line: did the lie reach a second stream?
+      add(lie.holder.name + ' swore ' + placeName(lie.tok.loc) + ' was ' + epithetFor(lie.tok) +
+        '. It was bare stone. That whisper is why we are still poor.', lie.holder.name);
+      var believers = [];
+      for (t = 0; t < thieves.length; t++) { m = thieves[t].memory || []; for (k = 0; k < m.length; k++) if (m[k].originId === lie.tok.originId) { believers.push(thieves[t].name); break; } }
       var g = null;
-      for (var i = 0; i < log.length; i++) if (log[i].type === 'GOSSIP' && log[i].tokenOriginId === lie.tok.originId) { g = log[i]; break; }
-      if (g) lines.push('By the next dark ' + nameOf(game, g.to) + ' believed it too — ' + nameOf(game, g.from) + ' had passed the word along.');
+      for (i = 0; i < log.length; i++) if (log[i].type === 'GOSSIP' && log[i].tokenOriginId === lie.tok.originId) { g = log[i]; break; }
+      if (g) add('By the next dark ' + nameOf(game, g.to) + ' believed it too — ' + nameOf(game, g.from) +
+        ' had passed the word along' + (believers.length > 2 ? ', and ' + word(believers.length) + ' of six carried it to the last night' : '') + '.', nameOf(game, g.to));
     }
-
     e = first(log, 'GEM_GRAB');
-    if (e) lines.push('And in the end ' + nameOf(game, e.thief) + ' lifted the star clean out of the sanctum.');
-    else lines.push('The star kept its socket in the sanctum, night after night, and never knew our names.');
-
-    // pad from final memory streams (still run-specific token references)
-    var thieves = (game && game.thieves) || [];
-    for (var t = 0; lines.length < 5 && t < thieves.length; t++) {
-      var mem = thieves[t].memory || [];
-      if (mem.length) lines.push(thieves[t].name + ' still swears there is something waiting in ' + placeName(mem[0].loc) + '.');
+    if (e) add('And in the end ' + nameOf(game, e.thief) + ' lifted the star clean out of the sanctum.', nameOf(game, e.thief));
+    else {
+      // the star survived — cite the thief who still holds a GEM_AT belief (where they swear it sleeps)
+      var seer = null, sloc = null;
+      for (t = 0; t < thieves.length; t++) { m = thieves[t].memory || []; for (k = 0; k < m.length; k++) if (m[k].type === 'GEM_AT') { seer = thieves[t]; sloc = m[k].loc; break; } if (seer) break; }
+      if (seer) add('The star kept its socket; ' + seer.name + ' still swears it sleeps in ' + placeName(sloc) + ', and never got close enough to be proven wrong.', seer.name);
+      else { var last = (thieves[thieves.length - 1] || {}).name || 'the gang'; add('Across ' + word(nights) + ' nights the star kept its socket, and never once learned ' + last + '\'s name.', last); }
     }
-    if (lines.length < 5) lines.push('The gang split what little they had and swore the vault had cheated them.');
-    lines = lines.slice(0, 8);
+
+    // Run-variable closing lines from FINAL memory streams ("remembers wrong" payoff): these differ
+    // run-to-run even when the seeded night-1 events don't (CAP-8), kept ahead of the >8 overflow trim.
+    var memoL = [], memoR = [], tops = [], far = null, farH = null, best;
+    for (t = 0; t < thieves.length; t++) {
+      m = thieves[t].memory || []; best = null;
+      for (k = 0; k < m.length; k++) { if (m[k].loc == null) continue; var hh = (m[k].hops && m[k].hops.length) || 0; if (!far || hh > ((far.hops && far.hops.length) || 0)) { far = m[k]; farH = thieves[t]; } if (!best || (m[k].confidence || 0) > (best.confidence || 0)) best = m[k]; }
+      tops[t] = best;
+    }
+    if (farH) { memoL.push(farH.name + ' still carries a rumor of ' + placeName(far.loc) + ', worn thin by every mouth it crossed.'); memoR.push(farH.name); }
+    var v0 = null, v1 = null;
+    for (t = 0; t < thieves.length; t++) { var tb = tops[t]; if (!tb || tb.loc == null) continue; if (!v0) v0 = { nm: thieves[t].name, loc: tb.loc }; else if (!v1 && placeName(tb.loc) !== placeName(v0.loc)) v1 = { nm: thieves[t].name, loc: tb.loc }; }
+    if (v0 && v1) { memoL.push(v0.nm + ' swears by ' + placeName(v0.loc) + ', ' + v1.nm + ' by ' + placeName(v1.loc) + ', and no two recall the same vault.'); memoR.push(v0.nm); }
+    var keep = Math.max(0, Math.min(lines.length, 8 - memoL.length));
+    lines = lines.slice(0, keep).concat(memoL); refs = refs.slice(0, keep).concat(memoR);
+    if (lines.length < 5) { var nm = (thieves[0] || {}).name || 'The gang'; lines.push(nm + ' split what little ' + word(count(log, 'LOOT_GRAB')) + ' sacks bought, and swore the vault had cheated them.'); refs.push(nm); }
 
     // diegetic outcome (zero numerals)
     var gem = first(log, 'GEM_GRAB');
-    var nights = Math.max(count(log, 'NIGHT_END'), count(log, 'NIGHT_START'));
     var stolenNight = gem ? (gem.night || nights) : 0;
     var moons = gem ? Math.max(0, stolenNight - 1) : nights;
     var pips = count(log, 'TRAP_TRIP') + count(log, 'PLATE_TRIP') + count(log, 'ALARM_TRIPPED') + count(log, 'FLEE');
     var fate = gem ? 'stolen' : 'safe';
 
-    Q.chron = { _for: game, lines: lines, moons: moons, pips: pips, fate: fate };
+    Q.chron = { _for: game, lines: lines, refs: refs, moons: moons, pips: pips, fate: fate };
     return Q.chron;
   }
 
@@ -1763,6 +1783,7 @@
     camera: camera, timeScale: timeScale, bubbleCount: bubbleCount, reset: reset,
     chronicle: chronicle, drawChronicle: drawChronicle, titleScreen: titleScreen,
     // exposed for tests / debugging
+    placeName: placeName, word: word,
     _state: function () { return Q; }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
