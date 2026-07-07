@@ -1110,23 +1110,49 @@
     if (Array.isArray(b)) return b; if (b.entries) return b.entries;
     var out = []; for (var k in b) out.push(b[k]); return out; // Map-ish fallback
   }
+  // ground-truth point-feature index (cell -> category set) so a belief can be checked against reality
+  var BELIEF_TRUTH_CAT = { TRAP_AT: 'trap', PLATE_AT: 'plate', ALARM_AT: 'alarm', LOOT_AT: 'loot', GEM_AT: 'gem', LOCKED_DOOR: 'door' };
+  function truthIndex(world) {
+    var m = {}; world = world || {};
+    function put(c, cat) { if (!c || c.x == null || c.y == null) return; var k = c.x + ',' + c.y; (m[k] || (m[k] = {}))[cat] = 1; }
+    (world.hazards || []).forEach(function (h) { put(h.cell || h, h.type); });
+    (world.loot || []).forEach(function (c) { put(c, 'loot'); });
+    if (world.gem) put(world.gem, 'gem');
+    (world.doors || []).forEach(function (d) { if (d.locked) (d.cells || [d.cell]).forEach(function (c) { put(c, 'door'); }); });
+    return m;
+  }
+  // a single-cell feature belief with no matching ground-truth feature = a phantom (planted lie / type-slip / stale rumor)
+  function isPhantom(truth, tok, cells) {
+    var cat = BELIEF_TRUTH_CAT[tok.type]; if (!cat || cells.length !== 1) return false;
+    var c = cells[0]; var k = c.x + ',' + c.y; return !(truth[k] && truth[k][cat]);
+  }
   function drawBeliefInk(ctx, game, cam) {
-    var es = beliefEntries(game), thieves = game.thieves || [];
+    var es = beliefEntries(game), thieves = game.thieves || [], truth = truthIndex(game.world);
     function holder(id) { for (var i = 0; i < thieves.length; i++) if (thieves[i].id === id || thieves[i].name === id) return thieves[i]; return null; }
     for (var i = 0; i < es.length; i++) {
       var e = es[i], tok = e.token || e, col = thiefColor(holder(e.holderId != null ? e.holderId : tok.source) || {}), cells = locCells(tok.loc);
       var conf = tok.confidence == null ? 0.6 : tok.confidence, st = trustState(conf); // EXACTLY three states (0.66/0.33 buckets) — no continuous confidence ramp
       var inkA = st === 'glow' ? 0.30 : st === 'neutral' ? 0.19 : 0.10, icol = st === 'grey' ? '#96a0af' : col; // grey belief tints to the neutral grey (matches the ledger)
+      var phantom = isPhantom(truth, tok, cells); // believed here, but the truth layer shows nothing — a divergence the player must spot fast
       ctx.save(); ctx.fillStyle = hexA(icol, inkA * 0.5); ctx.strokeStyle = hexA(icol, inkA);
       for (var j = 0; j < cells.length; j++) { var c = cells[j]; sketchFill(ctx, cam.ox + c.x * cam.cell, cam.oy + c.y * cam.cell, cam.cell); }
       var mid = cells[Math.floor(cells.length / 2)]; if (mid) {
         var p = cellToPx(cam, mid.x, mid.y);
+        if (phantom) drawPhantomRing(ctx, p.x, p.y, cam.cell, col, st); // divergence cue: a broken "ghost" halo the truth layer never draws
         if (st === 'glow') { ctx.shadowColor = col; ctx.shadowBlur = 10; } else ctx.shadowBlur = 0; // glow = the same halo cue as the ledger ring
         drawGlyph(ctx, tok.type, p.x, p.y, cam.cell * 0.33, { solid: false, color: icol, alpha: st === 'grey' ? 0.5 : st === 'neutral' ? 0.8 : 1 });
         ctx.shadowBlur = 0;
       }
       ctx.restore();
     }
+  }
+  // divergence marker: a dashed broken ring ONLY ever drawn on a belief that contradicts ground truth.
+  // trust still drives its strength (a glow lie screams, a grey lie whispers); per-thief provenance tint kept.
+  function drawPhantomRing(ctx, x, y, cell, col, st) {
+    var ra = st === 'glow' ? 0.62 : st === 'neutral' ? 0.5 : 0.4;
+    ctx.save(); ctx.shadowBlur = 0; ctx.strokeStyle = hexA(col, ra); ctx.lineWidth = Math.max(1.5, cell * 0.09);
+    ctx.setLineDash([cell * 0.16, cell * 0.16]); ctx.beginPath(); ctx.arc(x, y, cell * 0.46, 0, 7); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
   }
   function sketchFill(ctx, x, y, s) { ctx.beginPath(); ctx.moveTo(x + s * .1, y + s * .15); ctx.lineTo(x + s * .9, y + s * .1); ctx.lineTo(x + s * .85, y + s * .9); ctx.lineTo(x + s * .12, y + s * .82); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   function hexA(hex, a) {
@@ -1349,6 +1375,7 @@
     drawMiniMap: drawMiniMap, miniMapCellHit: miniMapCellHit, drawGlyph: drawGlyph,
     cellToPx: cellToPx, pxToCell: pxToCell, thiefColor: thiefColor, defaultCam: defaultCam,
     sensedCells: sensedCells, trustState: trustState,
+    truthIndex: truthIndex, isPhantom: isPhantom,
     WHISPERABLE: WHISPERABLE, SEATING: SEATING,
     get lastCam() { return S.lastCam; }
   };
