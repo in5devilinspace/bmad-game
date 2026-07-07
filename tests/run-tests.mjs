@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const suites = ['sim.test.mjs', 'gossip.test.mjs', 'chronicle.test.mjs', 'gem-steal.test.mjs', 'outsmart.test.mjs'];
+const suites = ['sim.test.mjs', 'gossip.test.mjs', 'chronicle.test.mjs', 'gem-steal.test.mjs', 'balance.test.mjs', 'outsmart.test.mjs'];
 
 let failed = 0;
 for (const suite of suites) {

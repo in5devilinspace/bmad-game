@@ -312,3 +312,36 @@ Append-only record of the no-human-in-the-loop improvement cycle. One entry per 
 **Follow-ups filed:** none new. Noted for a later accessibility pass (out of scope here): the RAID-mode ledger is still hover/click-only (no keyboard way to cycle the pinned thief ledger); low value vs. the whisper flow the player acts through, but the natural next accessibility slice. Pre-existing open items unchanged: optional muted audio kit; night-1/gem balance confirmation; target-hysteresis (Ash nights 4–5); trust-tinted debrief slides.
 
 **Commit:** (this commit)
+
+---
+
+## 2026-07-06 — Balance LOCK: night-1 win guaranteed + gem unreachable before night 3, pinned by a regression test (CAP-1)
+
+**Item:** "Balance: confirm night-1 outer-loot win is guaranteed and the gem is genuinely unreachable before night 3."
+
+**Outcome: DONE as a proof/lock — `src/index.html` is BYTE-UNCHANGED vs HEAD (verified `git diff --quiet`). The guarantee was already true (seeded night-1 win + the iteration-9 depth-gating fix); this iteration LOCKS it so future AI tuning can't silently break the core stakes.**
+
+**Empirical confirmation (broad node seed sweep, seeds 0..299, via the shipped-`<script id="sim">` extractor — throwaway probe, deleted):**
+- **NIGHT 1 (300 seeds):** outer-loot win **300/300 (100.0%)**; gem stolen **0/300**; timeouts **0/300**; outcomes exclusively `{"outer-loot":300}`; every run logged a night-1 `LOOT_GRAB` and NO `GEM_GRAB`. The night-1 guaranteed low-stakes win holds with zero player input (CAP-1 success signal).
+- **FULL 5-NIGHT AUTONOMOUS RUNS (300 seeds):** gem stolen **29/300 (9.7%)** — a challenge, not a giveaway; steal-by-night `{4:24, 5:5}` — **ALL on nights 4-5**; `GEM_GRAB` by night `{4:24, 5:5}`; **GEM_GRAB on nights 1-2 = 0** (and 0 on nights 1-3). The sanctum is genuinely unreachable before night 3, exactly as the depth-gating table (vault-map.md) and iteration-9 intend. No violation found → no sim fix needed.
+
+**What changed (test-only; sim untouched):**
+- **Added `tests/balance.test.mjs`** — a regression LOCK on the opening guarantee, exercising the shipped sim block via `extract-sim.mjs`. Three parts, 9 assertions:
+  - **(A) night-1 guaranteed win** — 100-seed sweep (night 1 only): asserts every raid ends with `outcome==='outer-loot'` AND `lootGrabbed>0`, `gemStolen===false`, and no night-1 `GEM_GRAB` event. Result 100/100.
+  - **(B) gem unreachable before night 3** — 60-seed sweep (nights 1-2 only, breaks on any steal): asserts **zero `GEM_GRAB` events on nights 1-2** and `raid.gemStolen` never set on nights 1-2. Result 0 / 0.
+  - **(B2) legend-of-the-star gate (mechanism lock)** — drives one seed through debriefs and asserts the true-gem-cell `GEM_AT` legend is NOT present in any thief's memory while planning nights <=3 (`game.night` 1 and 2 at debrief) and IS present once planning night 4 (`game.night>=3`). This directly guards the `emitRoutePlans` gate that keeps (B) true, so a re-tune of the gate is caught even if a shallow sweep misses the seed.
+  - Sweeps are **shallow-by-design** (part A = night 1; part B = nights 1-2) so the lock covers a broad seed range without paying for the deep nights; detecting an early steal never needs nights 3-5. `dt=100` kept, matching gem-steal/outsmart, for fidelity + determinism with the rest of the suite. Header documents the 300-seed empirical basis.
+  - This is the mirror of `tests/gem-steal.test.mjs` (which pins the OTHER end: gem IS stealable on some nights 4-5, whisper lures onto/off the sanctum). The two suites now fence the stakes bell-curve in from both sides.
+- **Wired `balance.test.mjs` into `tests/run-tests.mjs`** (between gem-steal and outsmart).
+
+**Verification evidence:**
+- `node tests/run-tests.mjs` → **ALL SUITES PASSED — shipped `<script id="sim">` verified**: sim, gossip, chronicle, gem-steal, **balance 9/9**, outsmart 15/0. Full suite ~57s.
+- `node --check tests/balance.test.mjs` and `tests/run-tests.mjs` → **SYNTAX OK**; `new vm.Script` on the extracted `<script id="sim">` block (967 lines) → **SYNTAX OK**.
+- `git diff --quiet -- src/index.html` → **src/index.html BYTE-UNCHANGED** vs HEAD (test-only lock). No `game-verifier` browser pass needed — there is no runtime/render change; the node sweep + extracted-block syntax check is the proof.
+- Line count **2190 → 2190** (unchanged; well under the 2400 cap).
+
+**Dirty working tree:** the conversation-start snapshot showed pre-existing spec-doc dirt + a deleted `.claude/scheduled_tasks.lock`; by working time the tree was already clean (resolved upstream). This commit touches ONLY this iteration's files: `tests/balance.test.mjs`, `tests/run-tests.mjs`, `BACKLOG.md`, `docs/loop-log.md`.
+
+**Follow-ups filed:** none new. Remaining backlog items are all optional/minor: the muted single-oscillator WebAudio kit (footstep ticks / alarm sting / confetti chime, no external assets) is the most player-visible next slice; plus target-hysteresis for Ash's nights 4-5 same-goal dither (conduct legibility) and the raid-mode keyboard ledger (accessibility follow-up).
+
+**Commit:** (this commit)
